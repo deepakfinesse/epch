@@ -1,0 +1,132 @@
+@import "tailwindcss";
+
+:root {
+  /* Light theme palette */
+  --bg-primary: #f1f5f9;
+  --bg-secondary: #ffffff;
+  --bg-card: #ffffff;
+  --bg-hover: #f8fafc;
+  --border: #e2e8f0;
+  --border-light: #cbd5e1;
+
+  /* Text */
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+  --text-accent: #0284c7;
+
+  /* Status colors */
+  --status-available: #059669;
+  --status-available-bg: rgba(5, 150, 105, 0.08);
+  --status-allotted: #dc2626;
+  --status-allotted-bg: rgba(220, 38, 38, 0.08);
+  --status-reserved: #d97706;
+  --status-reserved-bg: rgba(217, 119, 6, 0.08);
+  --status-blocked: #64748b;
+  --status-blocked-bg: rgba(100, 116, 139, 0.08);
+
+  /* Accent */
+  --accent-blue: #0284c7;
+  --accent-purple: #7c3aed;
+  --accent-green: #059669;
+
+  /* Hall block colors */
+  --block-e: #2563eb;
+  --block-f: #7c3aed;
+  --block-g: #0891b2;
+  --block-h: #d97706;
+  --block-j: #db2777;
+
+  --background: var(--bg-primary);
+  --foreground: var(--text-primary);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-light);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* Utility classes */
+.glass {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+}
+
+.glow-available {
+  box-shadow: 0 0 8px rgba(0, 212, 170, 0.4);
+}
+.glow-allotted {
+  box-shadow: 0 0 8px rgba(255, 107, 53, 0.4);
+}
+.glow-reserved {
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.4);
+}
+
+/* Pulse animation for live indicator */
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.8); }
+}
+.pulse-dot {
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+/* Scan line animation for terminal feel */
+@keyframes scanline {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100vh); }
+}
+
+/* Status badge utility */
+.badge-available  { background: var(--status-available-bg); color: var(--status-available); border: 1px solid rgba(0,212,170,0.3); }
+.badge-allotted   { background: var(--status-allotted-bg); color: var(--status-allotted); border: 1px solid rgba(255,107,53,0.3); }
+.badge-reserved   { background: var(--status-reserved-bg); color: var(--status-reserved); border: 1px solid rgba(245,158,11,0.3); }
+.badge-blocked    { background: var(--status-blocked-bg); color: var(--text-muted); border: 1px solid rgba(71,85,105,0.3); }
+
+/* Stall SVG hover transition */
+.stall-cell {
+  transition: opacity 0.15s ease, filter 0.15s ease;
+  cursor: pointer;
+}
+.stall-cell:hover {
+  opacity: 0.85;
+  filter: brightness(1.25);
+}
+
+/* Number monospace */
+.mono {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+}
