@@ -7,7 +7,7 @@ import { pct, formatNumber } from '@/lib/utils';
 
 export default function HallsPage() {
   const { data, isLoading, isFetching, refetch } = useHalls();
-  const halls = data?.halls || HALL_LIST.map((h) => ({ ...h, stats: { total: h.totalStalls, available: 0, allotted: 0, reserved: 0, blocked: 0, occupiedPct: 0 } }));
+  const halls = data?.halls || HALL_LIST.map((h) => ({ ...h, stats: { total: h.totalStalls, available: 0, allotted: 0, reserved: 0, occupiedPct: 0 } }));
 
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-8">

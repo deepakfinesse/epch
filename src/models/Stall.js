@@ -18,7 +18,7 @@ const StallSchema = new mongoose.Schema({
   area:        { type: Number, default: 9 },         // sqm
   status:      {
     type: String,
-    enum: ['available', 'allotted', 'reserved', 'blocked'],
+    enum: ['available', 'allotted', 'reserved'],
     default: 'available',
   },
   isMerged:    { type: Boolean, default: false },
@@ -27,7 +27,9 @@ const StallSchema = new mongoose.Schema({
   splitParts:  [{ type: String }],                   // ["24A","24B"]
   parentStall: { type: String, default: null },      // for split children
   exhibitor:   { type: ExhibitorSchema, default: () => ({}) },
-  source:      { type: String, enum: ['csv', 'erp', 'manual'], default: 'csv' },
+  side:        { type: Number, default: 1 },               // 1=top row, 2=bottom row
+  standType:   { type: String, default: '' },              // "RAW" or "MODULAR"
+  source:      { type: String, enum: ['csv', 'erp', 'manual'], default: 'erp' },
 }, {
   timestamps: true,
   indexes: [

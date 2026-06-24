@@ -84,7 +84,6 @@ export default function DashboardPage() {
             { key: 'allotted', color: '#ff6b35' },
             { key: 'reserved', color: '#f59e0b' },
             { key: 'available', color: '#00d4aa' },
-            { key: 'blocked', color: '#475569' },
           ].map(({ key, color }) => {
             const w = pct(stats[key] || 0, stats.total || 1);
             return w > 0 ? (
@@ -97,7 +96,6 @@ export default function DashboardPage() {
             { label: 'Allotted', color: '#ff6b35', key: 'allotted' },
             { label: 'Reserved', color: '#f59e0b', key: 'reserved' },
             { label: 'Available', color: '#00d4aa', key: 'available' },
-            { label: 'Blocked', color: '#475569', key: 'blocked' },
           ].map(({ label, color, key }) => (
             <div key={key} className="flex items-center gap-1.5 text-xs" style={{ color: 'var(--text-muted)' }}>
               <span className="w-2 h-2 rounded-full" style={{ background: color }} />

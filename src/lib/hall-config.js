@@ -1,39 +1,3 @@
-/**
- * Hall configuration — 61st IHGF Delhi Fair Spring 2026
- * India Expo Center & Mart, Greater Noida, UP, India
- *
- * Derived from official floor plan PDFs:
- *
- * PDF 1 – Halls 1, 3, 5, 7  (Ground Floor)
- *   Block E · 16 aisles total shared across 4 halls (4 each)
- *   Hall 1 (south): E-01–E-04 | Hall 3: E-05–E-08
- *   Hall 5: E-09–E-12         | Hall 7 (north): E-13–E-16
- *   Left side: Main Foyer (4-metre passage) + Entrances
- *   Right side: Service Entry (Halls 1 & 3)
- *
- * PDF 2 – Halls 2, 4, 6, 8  (Second Floor)
- *   Block F · 16 aisles total (aisle labels F-01–F-16 visible in PDF)
- *   Hall 2 (south): F-01–F-04 | Hall 4: F-05–F-08
- *   Hall 6: F-09–F-12         | Hall 8 (north): F-13–F-16
- *   Multiple entrance/exit points on left; "F" labels on right
- *
- * PDF 4 – Halls 9, 10, 11, 12  (Ground Floor)
- *   Block G · 16 aisles total (G-01–G-016 in PDF)
- *   Hall 9 (top):  G-01–G-04 | Hall 10: G-05–G-08
- *   Hall 11: G-09–G-12       | Hall 12 (bottom): G-13–G-16
- *   Service Entry on both sides; Entrances on left
- *
- * PDF 3 – Halls 9–17 overview (Ground Floor)
- *   Block H · Halls 13, 14, 15, 17 (aisles H-01–H-16)
- *   Hall 13: H-01–H-04 | Hall 14: H-05–H-08 (Meeting Area)
- *   Hall 15: H-09–H-12 | Hall 17: H-13–H-16 (Buyer's Lounge / Inauguration / Tea Lounge)
- *   Block J · Hall 16 only (aisles J-01–J-08)
- *   Hall 16: J-01–J-08 (Platinum Lounge, Artisans Area on right)
- *   Passages between Halls 12/13 and 14/15 corridors visible in PDF 3
- *
- * Stall counts: 28 stalls per side × 2 sides × 4 aisles = 224 stalls/hall (blocks E, F, G, H)
- * Stall IDs:    {2-digit-hallId}{3-digit-seq}  e.g. Hall 1 → "01001"–"01224"
- */
 
 // Generate a range of aisle labels
 function aisleRange(block, from, to) {
@@ -43,7 +7,7 @@ function aisleRange(block, from, to) {
 }
 
 // Stalls per side of one aisle (from PDF grid density analysis)
-const STD_STALLS = 28;  // blocks E, F, G, H — ~28 per side
+const STD_STALLS = 2;  // blocks E, F, G, H — ~28 per side
 const J_STALLS   = 24;  // block J — slightly narrower hall
 
 export const HALL_CONFIGS = {
@@ -74,10 +38,7 @@ export const HALL_CONFIGS = {
     totalStalls: 4 * STD_STALLS * 2,
     gridCols: STD_STALLS,
     description: 'Block E – Ground Floor',
-    // specialZones: [
-    //   { type: 'entrance', label: 'ENTRANCE', position: 'left' },
-    //   { type: 'service',  label: 'SERVICE ENTRY', position: 'right' },
-    // ],
+    
   },
   5: {
     id: 5, name: 'Hall 5', block: 'E',
@@ -88,10 +49,7 @@ export const HALL_CONFIGS = {
     stallsPerAisleRow: STD_STALLS,
     totalStalls: 4 * STD_STALLS * 2,
     gridCols: STD_STALLS,
-    // description: 'Block E – Ground Floor',
-    // specialZones: [
-    //   { type: 'entrance', label: 'ENTRANCE', position: 'left' },
-    // ],
+    
   },
   7: {
     id: 7, name: 'Hall 7', block: 'E',
@@ -103,9 +61,7 @@ export const HALL_CONFIGS = {
     totalStalls: 4 * STD_STALLS * 2,
     gridCols: STD_STALLS,
     description: 'Block E – Ground Floor',
-    // specialZones: [
-    //   { type: 'entrance', label: 'MAIN FOYER', position: 'left' },
-    // ],
+    
   },
 
   // ── BLOCK F · Second Floor ───────────────────────────────────────────────
@@ -314,7 +270,6 @@ export const STATUS_CONFIG = {
   available: { label: 'Available', color: '#059669', bg: 'rgba(5,150,105,0.10)',   border: 'rgba(5,150,105,0.35)' },
   allotted:  { label: 'Allotted',  color: '#dc2626', bg: 'rgba(220,38,38,0.10)',   border: 'rgba(220,38,38,0.35)' },
   reserved:  { label: 'Reserved',  color: '#d97706', bg: 'rgba(217,119,6,0.10)',   border: 'rgba(217,119,6,0.35)' },
-  blocked:   { label: 'Blocked',   color: '#64748b', bg: 'rgba(100,116,139,0.10)', border: 'rgba(100,116,139,0.35)' },
 };
 
 // ── CSV column mapping ───────────────────────────────────────────────────────
