@@ -41,12 +41,15 @@ export default function BlockMap({ blockGroup, halls, stalls, activeHallId }) {
 
   // ── Group stalls by aisle → side ─────────────────────────────────────────
   // aisleMap: { "E-01": { 1: [stall,...], 2: [stall,...] } }
+  // odd position → side 1 (top row / left of aisle)
+  // even position → side 2 (bottom row / right of aisle)
   const aisleMap = useMemo(() => {
     const map = {};
     for (const s of stalls) {
       if (!s.aisle) continue;
       if (!map[s.aisle]) map[s.aisle] = { 1: [], 2: [] };
-      const sk = (s.side === 2) ? 2 : 1;
+      const pos = stallPos(s.stallNumber);
+      const sk  = pos % 2 === 0 ? 2 : 1;
       map[s.aisle][sk].push(s);
     }
     for (const ad of Object.values(map)) {

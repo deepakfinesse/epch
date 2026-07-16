@@ -12,7 +12,6 @@ const STATUS_COLORS = {
   allotted:  '#ff6b35',
   reserved:  '#f59e0b',
   available: '#00d4aa',
-  blocked:   '#475569',
 };
 
 const CHART_TOOLTIP_STYLE = {
@@ -49,7 +48,6 @@ export default function AnalyticsPage() {
     { name: 'Allotted',  value: overall.allotted  || 0, color: '#ff6b35' },
     { name: 'Reserved',  value: overall.reserved  || 0, color: '#f59e0b' },
     { name: 'Available', value: overall.available || 0, color: '#00d4aa' },
-    { name: 'Blocked',   value: overall.blocked   || 0, color: '#475569' },
   ].filter((d) => d.value > 0);
 
   return (
