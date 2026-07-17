@@ -1,16 +1,16 @@
 'use client';
 import { useUIStore } from '@/store/ui-store';
 import { STATUS_CONFIG } from '@/lib/hall-config';
-import { Building2, User, Mail, Phone, MapPin, Tag, LayoutGrid } from 'lucide-react';
+import { Building2, User, Mail, Phone, MapPin, Tag, LayoutGrid, ArrowUpDown } from 'lucide-react';
 
 const TOOLTIP_W = 260;
-const TOOLTIP_H = 240;
+const TOOLTIP_H = 260;
 
 export default function StallTooltip() {
   const { hoveredStall, tooltipPos } = useUIStore();
   if (!hoveredStall) return null;
 
-  const { stallNumber, hallId, aisle, area, status, exhibitor = {} } = hoveredStall;
+  const { stallNumber, hallId, aisle, area, side, status, exhibitor = {} } = hoveredStall;
   const statusCfg = STATUS_CONFIG[status] || STATUS_CONFIG.available;
 
   // Keep tooltip within viewport
@@ -23,8 +23,9 @@ export default function StallTooltip() {
   const ty = Math.min(tooltipPos.y - 10, maxY);
 
   const rows = [
-    { icon: LayoutGrid, label: 'Stall',   value: `${stallNumber}  ·  Hall ${hallId}  ·  ${area || 9} sqm` },
-    { icon: Tag,        label: 'Aisle',   value: aisle || '—' },
+    { icon: LayoutGrid,  label: 'Stall',   value: `${stallNumber}  ·  Hall ${hallId}  ·  ${area || 9} sqm` },
+    { icon: Tag,         label: 'Aisle',   value: aisle || '—' },
+    { icon: ArrowUpDown, label: 'Side',    value: side ? String(side) : '—' },
     { icon: Building2,  label: 'Company', value: exhibitor.companyName || '—' },
     { icon: User,       label: 'Contact', value: exhibitor.contactPerson || '—' },
     { icon: Mail,       label: 'Email',   value: exhibitor.email || '—' },

@@ -2,12 +2,16 @@
 import { create } from 'zustand';
 
 export const useUIStore = create((set) => ({
+  // Fair selection
+  fairId: null,
+  setFairId: (id) => set({ fairId: id }),
+
   // Hall map view state
   selectedHall: null,
   setSelectedHall: (hall) => set({ selectedHall: hall }),
 
   // Stall filters
-  statusFilter: 'all',       // 'all' | 'available' | 'allotted' | 'reserved' | 'blocked'
+  statusFilter: 'all',       // 'all' | 'available' | 'allotted' | 'reserved'
   categoryFilter: 'all',
   searchQuery: '',
   setStatusFilter: (f) => set({ statusFilter: f }),

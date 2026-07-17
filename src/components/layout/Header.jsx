@@ -3,6 +3,7 @@ import { useUIStore } from '@/store/ui-store';
 import { Menu, RefreshCw, WifiOff, Clock, LogOut } from 'lucide-react';
 import { timeAgo } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
+import FairSelector from '@/components/ui/FairSelector';
 
 export default function Header({ title }) {
   const { toggleSidebar, lastSyncAt, syncStatus } = useUIStore();
@@ -42,6 +43,11 @@ export default function Header({ title }) {
             India Expo Center &amp; Mart, Greater Noida
           </p> */}
         </div>
+      </div>
+
+      {/* Centre: fair selector */}
+      <div className="flex-1 flex justify-center px-4">
+        <FairSelector />
       </div>
 
       {/* Right: sync indicator + logout */}
