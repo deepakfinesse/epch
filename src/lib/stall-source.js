@@ -109,11 +109,14 @@ export async function getStallsForHalls(hallIds, fairId) {
     const stallNumber = `${aisle}/${boothNo}`;
     const participant = pMap[stallNumber];
 
-    // Priority: allotted (has participant) → available (in balance list) → reserved
-    let status = 'reserved';
-    if (participant)               status = 'allotted';
-    else if (balanceSet.size > 0)  status = balanceSet.has(stallNumber) ? 'available' : 'reserved';
-    else                           status = 'available'; // fallback when balance API returned nothing
+    // In balance list → available; everything else → allotted
+    // (reserved is not a real EPCH API status — it falls under allotted)
+    let status;
+    if (balanceSet.size > 0) {
+      status = balanceSet.has(stallNumber) ? 'available' : 'allotted';
+    } else {
+      status = participant ? 'allotted' : 'available'; // fallback if balance API returned nothing
+    }
 
     results.push({
       stallNumber,
