@@ -177,26 +177,25 @@ export const HALL_CONFIGS = {
   },
 
   // ── BLOCK H · Ground Floor ───────────────────────────────────────────────
-  13: {
-    id: 13, name: 'Hall 13', block: 'H',
-    floor: 'ground', floorLabel: 'Ground Floor',
-    blockColor: '#d97706',
-    aisles: aisleRange('H', 1, 4),           // H-01 to H-04
-    aisleCount: 4,
-    stallsPerAisleRow: STD_STALLS,
-    totalStalls: 4 * STD_STALLS * 2,
-    gridCols: STD_STALLS,
-    description: 'Block H – Ground Floor',
-    // specialZones: [],
-  },
+  // 13: {
+  //   id: 13, name: 'Hall 13', block: 'H',
+  //   floor: 'ground', floorLabel: 'Ground Floor',
+  //   blockColor: '#d97706',
+  //   aisles: aisleRange('H', 1, 4),           
+  //   aisleCount: 4,
+  //   stallsPerAisleRow: STD_STALLS,
+  //   totalStalls: 4 * STD_STALLS * 2,
+  //   gridCols: STD_STALLS,
+  //   description: 'Block H – Ground Floor',
+  // },
   14: {
     id: 14, name: 'Hall 14', block: 'H',
     floor: 'ground', floorLabel: 'Ground Floor',
     blockColor: '#d97706',
-    aisles: aisleRange('H', 5, 8),           // H-05 to H-08
-    aisleCount: 4,
+    aisles: aisleRange('H', 1, 3),           // H-05 to H-08
+    aisleCount: 3,
     stallsPerAisleRow: STD_STALLS,
-    totalStalls: 4 * STD_STALLS * 2,
+    totalStalls: 3 * STD_STALLS * 2,
     gridCols: STD_STALLS,
     description: 'Block H – Ground Floor',
     // specialZones: [
@@ -207,10 +206,10 @@ export const HALL_CONFIGS = {
     id: 15, name: 'Hall 15', block: 'H',
     floor: 'ground', floorLabel: 'Ground Floor',
     blockColor: '#d97706',
-    aisles: aisleRange('H', 9, 12),          // H-09 to H-12
-    aisleCount: 4,
+    aisles: aisleRange('H', 4, 6),          // H-09 to H-12
+    aisleCount: 3,
     stallsPerAisleRow: STD_STALLS,
-    totalStalls: 4 * STD_STALLS * 2,
+    totalStalls: 3 * STD_STALLS * 2,
     gridCols: STD_STALLS,
     description: 'Block H – Ground Floor',
     // specialZones: [],
@@ -219,10 +218,10 @@ export const HALL_CONFIGS = {
     id: 17, name: 'Hall 17', block: 'H',
     floor: 'ground', floorLabel: 'Ground Floor',
     blockColor: '#d97706',
-    aisles: aisleRange('H', 13, 16),         // H-13 to H-16  (top — premium hall)
-    aisleCount: 4,
+    aisles: aisleRange('H', 7, 9),         
+    aisleCount: 3,
     stallsPerAisleRow: STD_STALLS,
-    totalStalls: 4 * STD_STALLS * 2,
+    totalStalls: 3 * STD_STALLS * 2,
     gridCols: STD_STALLS,
     description: 'Block H – Ground Floor',
     // specialZones: [
@@ -237,10 +236,10 @@ export const HALL_CONFIGS = {
     id: 16, name: 'Hall 16', block: 'J',
     floor: 'ground', floorLabel: 'Ground Floor',
     blockColor: '#db2777',
-    aisles: aisleRange('J', 1, 8),           // J-01 to J-08 (narrower wing in PDF 3)
-    aisleCount: 8,
+    aisles: aisleRange('J', 1, 5),           // J-01 to J-08 (narrower wing in PDF 3)
+    aisleCount: 5,
     stallsPerAisleRow: J_STALLS,
-    totalStalls: 8 * J_STALLS * 2,          // 384
+    totalStalls: 5 * J_STALLS * 2,          // 384
     gridCols: J_STALLS,
     description: 'Block J – Ground Floor',
     // specialZones: [
@@ -248,12 +247,25 @@ export const HALL_CONFIGS = {
     //   { type: 'area',   label: 'ARTISANS AREA',   position: 'right' },
     // ],
   },
+
+  // ── BLOCK K · Ground Floor (standalone hall) ─────────────────────────────
+  18: {
+    id: 18, name: 'Hall 18', block: 'K',
+    floor: 'ground', floorLabel: 'Ground Floor',
+    blockColor: '#FF0000',
+    aisles: aisleRange('K', 1, 6),           // K-01 to K-06 (narrower wing in PDF 3)
+    aisleCount: 6,
+    stallsPerAisleRow: J_STALLS,
+    totalStalls: 6 * J_STALLS * 2,          // 384
+    gridCols: J_STALLS,
+    description: 'Block K – Ground Floor',
+  },
 };
 
 // ── Navigation helpers ───────────────────────────────────────────────────────
 
 // Display order follows the PDF sequence
-export const HALL_LIST = [1, 3, 5, 7, 2, 4, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17].map(
+export const HALL_LIST = [1, 3, 5, 7, 2, 4, 6, 8, 9, 10, 11, 12, 14, 15, 16, 17, 18].map(
   (id) => HALL_CONFIGS[id]
 );
 
@@ -261,8 +273,9 @@ export const BLOCK_GROUPS = [
   { block: 'E', label: 'Block E – Ground Floor', color: '#2563eb', halls: [1, 3, 5, 7] },
   { block: 'F', label: 'Block F – Second Floor', color: '#7c3aed', halls: [2, 4, 6, 8] },
   { block: 'G', label: 'Block G – Ground Floor', color: '#0891b2', halls: [9, 10, 11, 12] },
-  { block: 'H', label: 'Block H – Ground Floor', color: '#d97706', halls: [13, 14, 15, 17] },
+  { block: 'H', label: 'Block H – Ground Floor', color: '#d97706', halls: [14, 15, 17] },
   { block: 'J', label: 'Block J – Ground Floor', color: '#db2777', halls: [16] },
+  { block: 'K', label: 'Block K – Ground Floor', color: '#FF0000', halls: [18] },
 ];
 
 // ── Status display config ────────────────────────────────────────────────────

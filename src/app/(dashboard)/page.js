@@ -22,7 +22,7 @@ export default function DashboardPage() {
     { label: 'Total Stalls',  value: total,        icon: Building2,   color: '#38bdf8', sub: '17 halls · 5 blocks' },
     { label: 'Allotted',      value: allotted,      icon: CheckCircle, color: '#ff6b35', sub: `${pct(allotted, total)}% occupied` },
     { label: 'Available',     value: available,     icon: Layers,      color: '#00d4aa', sub: `${pct(available, total)}% remaining` },
-    { label: 'Occupancy',     value: `${occupancyPct}%`, icon: TrendingUp, color: '#a78bfa', sub: `${formatNumber(allotted)} of ${formatNumber(total)} filled` },
+    // { label: 'Occupancy',     value: `${occupancyPct}%`, icon: TrendingUp, color: '#a78bfa', sub: `${formatNumber(allotted)} of ${formatNumber(total)} filled` },
   ];
 
   return (
@@ -41,7 +41,7 @@ export default function DashboardPage() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
         {kpis.map((k) => <KPICard key={k.label} {...k} />)}
       </div>
 
@@ -162,7 +162,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Block summary */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-3">
         {BLOCK_GROUPS.map((group) => {
           const blockHalls = hallStats.filter((h) => group.halls.includes(h.hallId));
           const bTotal    = blockHalls.reduce((s, h) => s + h.total, 0);

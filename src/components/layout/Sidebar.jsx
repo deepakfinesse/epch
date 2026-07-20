@@ -41,7 +41,7 @@ export default function Sidebar() {
       >
         {/* Logo row */}
         <div
-          className="flex items-center h-16 shrink-0 overflow-hidden"
+          className="flex items-center h-16 shrink-0 overflow-hidden bg-[#742574]"
           style={{
             borderBottom: '1px solid var(--border)',
             padding: sidebarOpen ? '0 16px' : '0 12px',
@@ -49,15 +49,16 @@ export default function Sidebar() {
             justifyContent: sidebarOpen ? 'flex-start' : 'center',
           }}
         >
-          <div
+          {/* <div
             className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
             style={{ background: 'linear-gradient(135deg, #2563eb, #7c3aed)' }}
           >
             <Building2 size={16} color="#fff" />
-          </div>
+          </div> */}
           {sidebarOpen && (
             <div className="overflow-hidden">
-              <p className="text-xs font-bold leading-tight" style={{ color: 'var(--text-primary)' }}>EPCH</p>
+              <img src="/logo.png" alt="EPCH" className="h-14" />
+              {/* <p className="text-xs font-bold leading-tight" style={{ color: 'var(--text-primary)' }}>EPCH</p> */}
               {/* <p className="mono leading-tight" style={{ color: 'var(--text-muted)', fontSize: 10 }}>Delhi Fair 2026</p> */}
             </div>
           )}

@@ -19,7 +19,7 @@ export default function FilterBar({ categories = [], stats = {} }) {
       style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}
     >
       {/* Search */}
-      <div className="relative flex-1 min-w-48">
+      {/* <div className="relative flex-1 min-w-48">
         <Search
           size={14}
           className="absolute left-3 top-1/2 -translate-y-1/2"
@@ -37,7 +37,7 @@ export default function FilterBar({ categories = [], stats = {} }) {
             color: 'var(--text-primary)',
           }}
         />
-      </div>
+      </div> */}
 
       {/* Status filter pills */}
       <div className="flex items-center gap-1.5 flex-wrap">
@@ -69,7 +69,7 @@ export default function FilterBar({ categories = [], stats = {} }) {
       </div>
 
       {/* Category filter */}
-      {categories.length > 0 && (
+      {/* {categories.length > 0 && (
         <select
           value={categoryFilter}
           onChange={(e) => setCategoryFilter(e.target.value)}
@@ -86,7 +86,7 @@ export default function FilterBar({ categories = [], stats = {} }) {
             <option key={c} value={c}>{c}</option>
           ))}
         </select>
-      )}
+      )} */}
 
       {/* Clear filters */}
       {hasActiveFilter && (
