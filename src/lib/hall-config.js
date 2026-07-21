@@ -280,9 +280,9 @@ export const BLOCK_GROUPS = [
 
 // ── Status display config ────────────────────────────────────────────────────
 export const STATUS_CONFIG = {
-  available: { label: 'Available', color: '#059669', bg: 'rgba(5,150,105,0.10)',   border: 'rgba(5,150,105,0.35)' },
-  allotted:  { label: 'Allotted',  color: '#dc2626', bg: 'rgba(220,38,38,0.10)',   border: 'rgba(220,38,38,0.35)' },
-  reserved:  { label: 'Reserved',  color: '#d97706', bg: 'rgba(217,119,6,0.10)',   border: 'rgba(217,119,6,0.35)' },
+  available: { label: 'Available', color: '#059669', bg: 'rgba(5,150,105,0.20)',   border: 'rgba(5,150,105,0.6)' },
+  allotted:  { label: 'Allotted',  color: '#dc2626', bg: 'rgba(220,38,38,0.20)',   border: 'rgba(220,38,38,0.6)' },
+  reserved:  { label: 'Reserved',  color: '#d97706', bg: 'rgba(217,119,6,0.20)',   border: 'rgba(217,119,6,0.6)' },
 };
 
 // ── CSV column mapping ───────────────────────────────────────────────────────

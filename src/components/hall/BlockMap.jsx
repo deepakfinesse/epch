@@ -419,7 +419,7 @@ function StallCell({ x, y, w, h, id, stall, dim, fill, stroke, onHover, onLeave 
       {coLabel && !dim && (
         <text x={x + w / 2} y={y + h / 2 + 4}
           textAnchor="middle" dominantBaseline="middle"
-          fontSize={4} fill="rgba(71,85,105,0.85)"
+          fontSize={4} fill="rgba(0, 0, 0, 1)"
           style={{ pointerEvents: 'none' }}>
           {coLabel}
         </text>
