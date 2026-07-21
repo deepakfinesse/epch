@@ -24,10 +24,21 @@ function sqmToPx(area) {
   return Math.max(Math.round((area / BASE_SQM) * UNIT_PX), MIN_PX);
 }
 
-// Position number from stallNumber "E-01/03" → 3
-function stallPos(stallNumber) {
-  const m = (stallNumber || '').match(/\/(\d+)$/);
+// Parent position number — strips split letter suffix
+// "E-01/03"  → 3   "E-01/03A" → 3   "E-01/03B" → 3
+function stallParentNum(stallNumber) {
+  const m = (stallNumber || '').match(/\/(\d+)[A-Za-z]?$/);
   return m ? parseInt(m[1], 10) : 0;
+}
+
+// Sort key: group splits with their parent, then order by letter
+// "E-01/01"  → 100   "E-01/01A" → 101   "E-01/01B" → 102   "E-01/02" → 200
+function stallSortKey(stallNumber) {
+  const m = (stallNumber || '').match(/\/(\d+)([A-Za-z]?)$/);
+  if (!m) return 0;
+  const num    = parseInt(m[1], 10);
+  const letter = m[2] ? m[2].toUpperCase().charCodeAt(0) - 64 : 0; // A→1, B→2 …
+  return num * 100 + letter;
 }
 
 export default function BlockMap({ blockGroup, halls, stalls, activeHallId }) {
@@ -48,13 +59,14 @@ export default function BlockMap({ blockGroup, halls, stalls, activeHallId }) {
     for (const s of stalls) {
       if (!s.aisle) continue;
       if (!map[s.aisle]) map[s.aisle] = { 1: [], 2: [] };
-      const pos = stallPos(s.stallNumber);
-      const sk  = pos % 2 === 0 ? 2 : 1;
+      const num = stallParentNum(s.stallNumber);
+      const sk  = num % 2 === 0 ? 2 : 1;  // even → side 2, odd → side 1
       map[s.aisle][sk].push(s);
     }
     for (const ad of Object.values(map)) {
       for (const arr of Object.values(ad)) {
-        arr.sort((a, b) => stallPos(a.stallNumber) - stallPos(b.stallNumber));
+        // sort by parent num then by split letter so 01 < 01A < 01B < 02 < 02A …
+        arr.sort((a, b) => stallSortKey(a.stallNumber) - stallSortKey(b.stallNumber));
       }
     }
     return map;
@@ -219,7 +231,7 @@ export default function BlockMap({ blockGroup, halls, stalls, activeHallId }) {
       </div>
 
       {/* Legend */}
-      <div className="absolute top-3 left-3 z-10 flex flex-col gap-1.5 p-2.5 rounded-lg"
+      {/* <div className="absolute top-3 left-3 z-10 flex flex-col gap-1.5 p-2.5 rounded-lg"
         style={{ background: 'rgba(255,255,255,0.95)', border: '1px solid var(--border)' }}>
         {Object.entries(STATUS_CONFIG).map(([key, cfg]) => (
           <div key={key} className="flex items-center gap-2 text-xs">
@@ -227,7 +239,7 @@ export default function BlockMap({ blockGroup, halls, stalls, activeHallId }) {
             <span style={{ color: 'var(--text-secondary)' }}>{cfg.label}</span>
           </div>
         ))}
-      </div>
+      </div> */}
 
       {/* SVG canvas */}
       <svg
@@ -419,7 +431,7 @@ function StallCell({ x, y, w, h, id, stall, dim, fill, stroke, onHover, onLeave 
       {coLabel && !dim && (
         <text x={x + w / 2} y={y + h / 2 + 4}
           textAnchor="middle" dominantBaseline="middle"
-          fontSize={4} fill="rgba(0, 0, 0, 1)"
+          fontSize={6} fill="rgba(0, 0, 0, 1)"
           style={{ pointerEvents: 'none' }}>
           {coLabel}
         </text>

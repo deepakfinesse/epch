@@ -120,20 +120,20 @@ export default function LoginPage() {
         style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}
       >
         {/* Header band */}
-        <div className="px-8 pt-8 pb-6 text-center bg-[#742574] text-center" style={{ borderBottom: '1px solid var(--border)' }}>
-          <img src="/logo.png" alt="EPCH" className="h-14 text-center" />
+        <div className="px-8 pt-8 pb-6 text-center bg-[#fff] text-center" style={{ borderBottom: '1px solid var(--border)' }}>
+          {/* <img src="/logo.png" alt="EPCH" className="h-14 text-center" /> */}
           {/* <div
             className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-4"
             style={{ background: 'linear-gradient(135deg, #2563eb, #7c3aed)' }}
           >
             <Building2 size={22} color="#fff" />
           </div> */}
-          {/* <h1 className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>
+          <h1 className="text-lg font-bold text-black">
             EPCH
-          </h1> */}
-          {/* <p className="text-xs mt-0.5" style={{ color: 'var(--text-white)' }}>
+          </h1>
+          <p className="text-xs mt-0.5 text-black">
             Dashboard
-          </p> */}
+          </p>
         </div>
 
         <Suspense fallback={<div className="px-8 py-6 text-center text-sm" style={{ color: 'var(--text-muted)' }}>Loading…</div>}>

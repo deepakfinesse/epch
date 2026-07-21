@@ -19,7 +19,7 @@ export default function DashboardPage() {
   const occupancyPct = pct(allotted, total);
 
   const kpis = [
-    { label: 'Total Stalls',  value: total,        icon: Building2,   color: '#38bdf8', sub: '17 halls · 5 blocks' },
+    { label: 'Total Stalls',  value: total,        icon: Building2,   color: '#38bdf8', sub: '17 halls · 6 blocks' },
     { label: 'Allotted',      value: allotted,      icon: CheckCircle, color: '#ff6b35', sub: `${pct(allotted, total)}% occupied` },
     { label: 'Available',     value: available,     icon: Layers,      color: '#00d4aa', sub: `${pct(available, total)}% remaining` },
     // { label: 'Occupancy',     value: `${occupancyPct}%`, icon: TrendingUp, color: '#a78bfa', sub: `${formatNumber(allotted)} of ${formatNumber(total)} filled` },
