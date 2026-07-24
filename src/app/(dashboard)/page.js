@@ -1,13 +1,17 @@
 'use client';
+'use client';
+import { useState, useRef, useEffect } from 'react';
 import { useAnalytics } from '@/hooks/useAnalytics';
+import { useUIStore } from '@/store/ui-store';
 import KPICard from '@/components/ui/KPICard';
-import { Building2, CheckCircle, Layers, TrendingUp, RefreshCw, BarChart2, Tag } from 'lucide-react';
+import { Building2, CheckCircle, Layers, RefreshCw, BarChart2, Tag, Download, ChevronDown } from 'lucide-react';
 import { formatNumber, pct } from '@/lib/utils';
 import Link from 'next/link';
 import { BLOCK_GROUPS } from '@/lib/hall-config';
 
 export default function DashboardPage() {
   const { data, isLoading, isFetching, refetch } = useAnalytics();
+  const fairId = useUIStore((s) => s.fairId);
 
   const overall    = data?.overall    || {};
   const hallStats  = data?.hallStats  || [];
@@ -30,14 +34,17 @@ export default function DashboardPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>Dashboard Overview</h2>
-        <button
-          onClick={() => refetch()}
-          disabled={isFetching}
-          className="flex items-center gap-2 text-sm px-4 py-2 rounded-lg transition-colors"
-          style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text-secondary)' }}
-        >
-          <RefreshCw size={14} className={isFetching ? 'animate-spin' : ''} /> Refresh
-        </button>
+        <div className="flex items-center gap-2">
+          <DownloadMenu fairId={fairId} />
+          <button
+            onClick={() => refetch()}
+            disabled={isFetching}
+            className="flex items-center gap-2 text-sm px-4 py-2 rounded-lg transition-colors"
+            style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text-secondary)' }}
+          >
+            <RefreshCw size={14} className={isFetching ? 'animate-spin' : ''} /> Refresh
+          </button>
+        </div>
       </div>
 
       {/* KPI Cards */}
@@ -185,6 +192,76 @@ export default function DashboardPage() {
           );
         })}
       </div>
+    </div>
+  );
+}
+
+const REPORT_OPTIONS = [
+  { type: 'all',       label: 'All Stalls Report',       desc: 'Every stall with participant details' },
+  { type: 'allotted',  label: 'Allotted Stalls Report',  desc: 'Only allotted stalls + exhibitor info' },
+  { type: 'available', label: 'Available Stalls Report',  desc: 'Only stalls still available' },
+];
+
+function DownloadMenu({ fairId }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    function onClickOutside(e) {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    }
+    document.addEventListener('mousedown', onClickOutside);
+    return () => document.removeEventListener('mousedown', onClickOutside);
+  }, []);
+
+  function download(type) {
+    if (!fairId) return;
+    const url = `/api/export?fair_id=${fairId}&type=${type}`;
+    const a   = document.createElement('a');
+    a.href    = url;
+    a.click();
+    setOpen(false);
+  }
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        disabled={!fairId}
+        className="flex items-center gap-2 text-sm px-4 py-2 rounded-lg transition-colors"
+        style={{
+          background: 'var(--bg-card)',
+          border: '1px solid var(--border)',
+          color: fairId ? 'var(--text-secondary)' : 'var(--text-muted)',
+          cursor: fairId ? 'pointer' : 'not-allowed',
+        }}
+      >
+        <Download size={14} />
+        Export
+        <ChevronDown size={12} style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
+      </button>
+
+      {open && (
+        <div
+          className="absolute right-0 mt-1 w-64 rounded-xl overflow-hidden z-50 shadow-2xl"
+          style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}
+        >
+          {REPORT_OPTIONS.map(({ type, label, desc }) => (
+            <button
+              key={type}
+              onClick={() => download(type)}
+              className="w-full text-left px-4 py-3 flex items-start gap-3 transition-colors hover:bg-white/5"
+              style={{ borderBottom: '1px solid var(--border)' }}
+            >
+              <Download size={13} className="mt-0.5 shrink-0" style={{ color: 'var(--accent-blue)' }} />
+              <div>
+                <p className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>{label}</p>
+                <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>{desc}</p>
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
