@@ -22,11 +22,28 @@ export async function GET(req) {
     }
 
     const hallStats = HALL_LIST.map((cfg) => {
-      const hs       = hallStallMap[cfg.id] || [];
-      const total    = hs.length;
-      const allotted = hs.filter((s) => s.status === 'allotted').length;
-      const reserved = hs.filter((s) => s.status === 'reserved').length;
+      const hs        = hallStallMap[cfg.id] || [];
+      const total     = hs.length;
+      const allotted  = hs.filter((s) => s.status === 'allotted').length;
+      const reserved  = hs.filter((s) => s.status === 'reserved').length;
       const available = Math.max(0, total - allotted - reserved);
+
+      // Area (sqm)
+      const totalArea    = Math.round(hs.reduce((sum, s) => sum + (s.area || 9), 0));
+      const allottedArea = Math.round(hs.filter((s) => s.status === 'allotted').reduce((sum, s) => sum + (s.area || 9), 0));
+
+      // Top 3 categories in this hall (allotted stalls only)
+      const hCatMap = {};
+      for (const s of hs) {
+        if (s.status === 'allotted' && s.exhibitor?.productCategory) {
+          hCatMap[s.exhibitor.productCategory] = (hCatMap[s.exhibitor.productCategory] || 0) + 1;
+        }
+      }
+      const topCategories = Object.entries(hCatMap)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3)
+        .map(([name, count]) => ({ name, count }));
+
       return {
         hallId:      cfg.id,
         hallName:    cfg.name,
@@ -36,7 +53,10 @@ export async function GET(req) {
         reserved,
         available,
         total,
-        occupiedPct: total ? Math.round((allotted + reserved) / total * 100) : 0,
+        occupiedPct:   total ? Math.round((allotted + reserved) / total * 100) : 0,
+        totalArea,
+        allottedArea,
+        topCategories,
       };
     });
 

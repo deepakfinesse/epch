@@ -168,6 +168,77 @@ export default function DashboardPage() {
         </div>
       </div>
 
+      {/* Hall-wise Area & Category table */}
+      <div className="rounded-xl overflow-hidden" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+        <div className="px-4 py-3 flex items-center gap-2" style={{ borderBottom: '1px solid var(--border)' }}>
+          <BarChart2 size={15} style={{ color: 'var(--accent-blue)' }} />
+          <h3 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>Hall-wise Area & Categories</h3>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs" style={{ borderCollapse: 'collapse' }}>
+            <thead>
+              <tr style={{ borderBottom: '1px solid var(--border)', background: 'var(--bg-secondary)' }}>
+                {['Hall', 'Block', 'Total Stalls', 'Allotted', 'Available', 'Total Area (sqm)', 'Allotted Area (sqm)', 'Top Categories'].map((h) => (
+                  <th key={h} className="px-3 py-2 text-left font-semibold whitespace-nowrap"
+                    style={{ color: 'var(--text-muted)' }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {isLoading
+                ? Array.from({ length: 6 }).map((_, i) => (
+                    <tr key={i} style={{ borderBottom: '1px solid var(--border)' }}>
+                      {Array.from({ length: 8 }).map((__, j) => (
+                        <td key={j} className="px-3 py-2.5">
+                          <div className="h-3 rounded animate-pulse w-16" style={{ background: 'var(--border)' }} />
+                        </td>
+                      ))}
+                    </tr>
+                  ))
+                : hallStats.map((h) => (
+                    <tr key={h.hallId}
+                      className="transition-colors"
+                      style={{ borderBottom: '1px solid var(--border)' }}
+                      onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.03)'}
+                      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                    >
+                      <td className="px-3 py-2.5">
+                        <Link href={`/halls/${h.hallId}`} className="flex items-center gap-2 hover:underline">
+                          <span className="w-2 h-2 rounded-full shrink-0" style={{ background: h.blockColor }} />
+                          <span className="font-medium" style={{ color: 'var(--text-primary)' }}>{h.hallName}</span>
+                        </Link>
+                      </td>
+                      <td className="px-3 py-2.5">
+                        <span className="px-1.5 py-0.5 rounded text-xs font-bold mono"
+                          style={{ background: `${h.blockColor}18`, color: h.blockColor }}>
+                          {h.block}
+                        </span>
+                      </td>
+                      <td className="px-3 py-2.5 mono font-medium" style={{ color: 'var(--text-primary)' }}>{h.total}</td>
+                      <td className="px-3 py-2.5 mono font-semibold" style={{ color: '#ff6b35' }}>{h.allotted}</td>
+                      <td className="px-3 py-2.5 mono font-semibold" style={{ color: '#00d4aa' }}>{h.available}</td>
+                      <td className="px-3 py-2.5 mono" style={{ color: 'var(--text-secondary)' }}>{formatNumber(h.totalArea)}</td>
+                      <td className="px-3 py-2.5 mono" style={{ color: '#ff6b35' }}>{formatNumber(h.allottedArea)}</td>
+                      <td className="px-3 py-2.5">
+                        <div className="flex flex-wrap gap-1">
+                          {(h.topCategories || []).map((cat) => (
+                            <span key={cat.name}
+                              className="px-1.5 py-0.5 rounded text-xs truncate max-w-35"
+                              style={{ background: 'var(--bg-secondary)', color: 'var(--text-secondary)', border: '1px solid var(--border)' }}
+                              title={`${cat.name} (${cat.count})`}>
+                              {cat.name} <span className="font-bold" style={{ color: 'var(--text-muted)' }}>·{cat.count}</span>
+                            </span>
+                          ))}
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       {/* Block summary */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-3">
         {BLOCK_GROUPS.map((group) => {
