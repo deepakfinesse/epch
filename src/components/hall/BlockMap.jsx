@@ -8,7 +8,7 @@ import StallTooltip from './StallTooltip';
 const CELL_H    = 38;   // stall cell height (was 22)
 const AISLE_H   = 24;   // walkway corridor height (was 16)
 const FOYER_H   = 52;   // MAIN FOYER passage between halls (was 38)
-const ENTRY_W   = 64;   // left entrance column
+const ENTRY_W   = 100;  // left entrance column (wide enough for foyer stall cells)
 const SERVICE_W = 60;   // right service-entry column
 const PAD       = 14;
 
@@ -52,25 +52,33 @@ export default function BlockMap({ blockGroup, halls, stalls, activeHallId }) {
   const panStart = useRef(null);
 
   // ── Group stalls by aisle → side ─────────────────────────────────────────
-  // aisleMap: { "E-01": { 1: [stall,...], 2: [stall,...] } }
-  // odd position → side 1 (top row / left of aisle)
-  // even position → side 2 (bottom row / right of aisle)
-  const aisleMap = useMemo(() => {
-    const map = {};
+  // aisleMap: { "E-01": { 1: [stall,...], 2: [stall,...] } }  — regular grid stalls
+  // foyerMap: { "E-01": [stall,...] }                          — HALL=FOYER stalls (entrance column)
+  // odd position → side 1 (top row), even → side 2 (bottom row)
+  const { aisleMap, foyerMap } = useMemo(() => {
+    const aMap = {};
+    const fMap = {};
     for (const s of stalls) {
       if (!s.aisle) continue;
-      if (!map[s.aisle]) map[s.aisle] = { 1: [], 2: [] };
-      const num = stallParentNum(s.stallNumber);
-      const sk  = num % 2 === 0 ? 2 : 1;  // even → side 2, odd → side 1
-      map[s.aisle][sk].push(s);
+      if (s.isFoyer) {
+        if (!fMap[s.aisle]) fMap[s.aisle] = [];
+        fMap[s.aisle].push(s);
+      } else {
+        if (!aMap[s.aisle]) aMap[s.aisle] = { 1: [], 2: [] };
+        const num = stallParentNum(s.stallNumber);
+        const sk  = num % 2 === 0 ? 2 : 1;
+        aMap[s.aisle][sk].push(s);
+      }
     }
-    for (const ad of Object.values(map)) {
+    for (const ad of Object.values(aMap)) {
       for (const arr of Object.values(ad)) {
-        // sort by parent num then by split letter so 01 < 01A < 01B < 02 < 02A …
         arr.sort((a, b) => stallSortKey(a.stallNumber) - stallSortKey(b.stallNumber));
       }
     }
-    return map;
+    for (const arr of Object.values(fMap)) {
+      arr.sort((a, b) => stallSortKey(a.stallNumber) - stallSortKey(b.stallNumber));
+    }
+    return { aisleMap: aMap, foyerMap: fMap };
   }, [stalls]);
 
   // ── Compute SVG grid width (pixels, same for all halls) ──────────────────
@@ -285,37 +293,29 @@ export default function BlockMap({ blockGroup, halls, stalls, activeHallId }) {
           return (
             <g key={hall.id}>
 
-              {/* ── MAIN FOYER between halls ──────────────────────────────── */}
+              {/* ── MAIN FOYER between halls — unified full-width band, no internal seams ── */}
               {hi > 0 && (() => {
-                const fy = hallY - FOYER_H;
+                const fy    = hallY - FOYER_H;
+                const totalW = ENTRY_W + gridW + SERVICE_W;
                 return (
                   <g>
-                    <rect x={gridX} y={fy} width={gridW} height={FOYER_H}
-                      fill="rgba(226,232,240,0.45)" stroke="rgba(203,213,225,0.5)" strokeWidth={0.5} />
+                    {/* Single rect spanning entrance column + grid + service column */}
+                    <rect x={PAD} y={fy} width={totalW} height={FOYER_H}
+                      fill="rgba(226,232,240,0.50)" stroke="rgba(203,213,225,0.55)" strokeWidth={0.6} />
+                    {/* Label centred in the main grid portion */}
                     <text x={gridX + gridW / 2} y={fy + FOYER_H / 2}
                       textAnchor="middle" dominantBaseline="middle"
                       fontSize={9} fontFamily="sans-serif" fontWeight={500}
-                      fill="rgba(100,116,139,0.75)" style={{ pointerEvents: 'none' }}>
+                      fill="rgba(100,116,139,0.80)" style={{ pointerEvents: 'none' }}>
                       ◄ MAIN FOYER (4 METRES WIDE PASSAGE) ►
                     </text>
-                    <rect x={PAD}           y={fy} width={ENTRY_W}   height={FOYER_H} fill="rgba(226,232,240,0.3)" stroke="rgba(203,213,225,0.4)" strokeWidth={0.5} />
-                    <rect x={gridX + gridW} y={fy} width={SERVICE_W} height={FOYER_H} fill="rgba(226,232,240,0.3)" stroke="rgba(203,213,225,0.4)" strokeWidth={0.5} />
                   </g>
                 );
               })()}
 
               {/* ── LEFT ENTRANCE column ──────────────────────────────────── */}
               <rect x={PAD} y={hallY} width={ENTRY_W} height={hallH}
-                fill={`${blockColor}07`} stroke="rgba(203,213,225,0.5)" strokeWidth={0.5} />
-              <text
-                x={PAD + ENTRY_W / 2} y={hallY + hallH / 2}
-                textAnchor="middle" dominantBaseline="middle"
-                fontSize={7} fontFamily="sans-serif" fontWeight={600} letterSpacing={1.5}
-                fill={`${blockColor}70`}
-                transform={`rotate(-90,${PAD + ENTRY_W / 2},${hallY + hallH / 2})`}
-                style={{ pointerEvents: 'none' }}>
-                ▼  ENTRANCE
-              </text>
+                fill={`${blockColor}05`} stroke="rgba(203,213,225,0.5)" strokeWidth={0.5} />
 
               {/* ── RIGHT SERVICE ENTRY column ────────────────────────────── */}
               <rect x={gridX + gridW} y={hallY} width={SERVICE_W} height={hallH}
@@ -363,23 +363,58 @@ export default function BlockMap({ blockGroup, halls, stalls, activeHallId }) {
                 const aisleY    = rowY + CELL_H;
                 const ad        = aisleMap[aisleName] || {};
 
+                // Boundary aisles (first/last of hall) show entrance gate marker
+                const isBoundaryAisle = displayIdx === 0 || displayIdx === aisleCount - 1;
+
                 return (
                   <g key={aisleName}>
-                    {/* Entry notch — aligned with this aisle corridor in the entrance column */}
-                    <rect x={PAD + 2} y={aisleY + 1} width={ENTRY_W - 4} height={AISLE_H - 2} rx={3}
-                      fill={`${blockColor}15`} stroke={`${blockColor}50`} strokeWidth={0.7} />
-                    <text x={PAD + 6} y={aisleY + AISLE_H / 2}
-                      textAnchor="start" dominantBaseline="middle"
-                      fontSize={8} fontFamily="monospace" fontWeight={600} fill={`${blockColor}90`}
-                      style={{ pointerEvents: 'none' }}>
-                      {aisleName}
-                    </text>
-                    <text x={PAD + ENTRY_W - 4} y={aisleY + AISLE_H / 2}
-                      textAnchor="end" dominantBaseline="middle"
-                      fontSize={8} fontFamily="monospace" fontWeight={700} fill={`${blockColor}90`}
-                      style={{ pointerEvents: 'none' }}>
-                      ▶
-                    </text>
+                    {/* Compact entrance arrow — boundary aisles only, centred in the row */}
+                    {isBoundaryAisle && (() => {
+                      const arrowH = AISLE_H + 4;                      // ~28 px — small
+                      const arrowY = rowY + (ROW_H - arrowH) / 2;     // vertically centred
+                      const ax     = PAD + 6;
+                      const tipX   = PAD + ENTRY_W - 6;
+                      return (
+                        <g style={{ pointerEvents: 'none' }}>
+                          <polygon
+                            points={`${ax},${arrowY} ${ax},${arrowY + arrowH} ${tipX},${arrowY + arrowH / 2}`}
+                            fill={`${blockColor}18`}
+                            stroke={`${blockColor}65`}
+                            strokeWidth={1.2}
+                            strokeLinejoin="round"
+                          />
+                          <text
+                            x={ax + (tipX - ax) * 0.38} y={arrowY + arrowH / 2}
+                            textAnchor="middle" dominantBaseline="middle"
+                            fontSize={5.5} fontFamily="sans-serif" fontWeight={700} letterSpacing={0.8}
+                            fill={`${blockColor}90`}
+                            transform={`rotate(-90,${ax + (tipX - ax) * 0.38},${arrowY + arrowH / 2})`}>
+                            ENTRANCE
+                          </text>
+                        </g>
+                      );
+                    })()}
+
+                    {/* FOYER stalls — only for non-boundary aisles (entrance arrow occupies boundary rows) */}
+                    {!isBoundaryAisle && (() => {
+                      const fs = foyerMap[aisleName];
+                      if (!fs?.length) return null;
+                      const sliceH = Math.floor(ROW_H / fs.length);
+                      return fs.map((s, fi) => {
+                        const isLast = fi === fs.length - 1;
+                        return (
+                          <StallCell key={s.stallNumber}
+                            x={PAD + 2} y={rowY + fi * sliceH}
+                            w={ENTRY_W - 4} h={isLast ? ROW_H - fi * sliceH : sliceH}
+                            id={s.stallNumber} stall={s}
+                            dim={isDimmed(s)}
+                            fill={fillColor(s)} stroke={strokeClr(s)}
+                            onHover={handleStallHover}
+                            onLeave={() => setHoveredStall(null)}
+                            faceLeft={true} />
+                        );
+                      });
+                    })()}
 
                     {/* Aisle corridor */}
                     <rect x={gridX} y={aisleY} width={gridW} height={AISLE_H}
@@ -418,7 +453,8 @@ function EmptyCell({ x, y, w, h }) {
 }
 
 // ── Stall cell ────────────────────────────────────────────────────────────────
-function StallCell({ x, y, w, h, id, stall, dim, fill, stroke, onHover, onLeave }) {
+// faceLeft=true  → foyer stalls facing the left entrance passage; text rotated −90°
+function StallCell({ x, y, w, h, id, stall, dim, fill, stroke, onHover, onLeave, faceLeft = false }) {
   const [hovered, setHovered] = useState(false);
   const statusColor = stall ? (STATUS_CONFIG[stall.status]?.color ?? '#94a3b8') : 'rgba(148,163,184,0.5)';
   const company     = stall?.exhibitor?.companyName;
@@ -426,10 +462,13 @@ function StallCell({ x, y, w, h, id, stall, dim, fill, stroke, onHover, onLeave 
     ? (STATUS_CONFIG[stall.status]?.bg?.replace(/[\d.]+\)$/, '0.28)') ?? fill)
     : 'rgba(148,163,184,0.15)';
 
-  // Truncate label to fit: ~5px per char at fontSize=9
-  const maxChars = Math.max(2, Math.floor((w - 6) / 5));
-  const idLabel  = id ? (id.split('/')[1] ?? id) : '';   // show just the position "01"
-  const coLabel  = company ? company.substring(0, maxChars) : '';
+  const idLabel  = id || '';
+  const cx = x + w / 2;
+  const cy = y + h / 2;
+
+  // Company name only for normal (non-rotated) cells
+  const maxChars = Math.max(2, Math.floor((faceLeft ? h - 6 : w - 6) / 4));
+  const coLabel  = (!faceLeft && company) ? company.substring(0, maxChars) : '';
 
   return (
     <g className="stall-cell"
@@ -443,23 +482,37 @@ function StallCell({ x, y, w, h, id, stall, dim, fill, stroke, onHover, onLeave 
         strokeWidth={hovered ? 1.8 : (stall ? 0.9 : 0.4)}
         opacity={dim ? 0.18 : 1}
       />
-      {/* Stand number */}
-      <text
-        x={x + w / 2} y={y + h / 2 - (coLabel ? 6 : 0)}
-        textAnchor="middle" dominantBaseline="middle"
-        fontSize={9} fontWeight={600} fontFamily="monospace"
-        fill={statusColor} opacity={dim ? 0.25 : 0.85}
-        style={{ pointerEvents: 'none' }}>
-        {idLabel}
-      </text>
-      {/* Company name (short) */}
-      {coLabel && !dim && (
-        <text x={x + w / 2} y={y + h / 2 + 7}
+      {faceLeft ? (
+        /* Foyer stall — rotated −90° so label reads from bottom to top (faces left passage) */
+        <text
+          x={cx} y={cy}
           textAnchor="middle" dominantBaseline="middle"
-          fontSize={8} fill="rgba(0, 0, 0, 1)"
+          fontSize={7} fontWeight={600} fontFamily="monospace"
+          fill={statusColor} opacity={dim ? 0.25 : 0.9}
+          transform={`rotate(-90,${cx},${cy})`}
           style={{ pointerEvents: 'none' }}>
-          {coLabel}
+          {idLabel}
         </text>
+      ) : (
+        <>
+          {/* Normal stall — horizontal label */}
+          <text
+            x={cx} y={cy - (coLabel ? 6 : 0)}
+            textAnchor="middle" dominantBaseline="middle"
+            fontSize={7} fontWeight={600} fontFamily="monospace"
+            fill={statusColor} opacity={dim ? 0.25 : 0.9}
+            style={{ pointerEvents: 'none' }}>
+            {idLabel}
+          </text>
+          {coLabel && !dim && (
+            <text x={cx} y={cy + 7}
+              textAnchor="middle" dominantBaseline="middle"
+              fontSize={7} fill="rgba(0,0,0,0.85)"
+              style={{ pointerEvents: 'none' }}>
+              {coLabel}
+            </text>
+          )}
+        </>
       )}
     </g>
   );

@@ -126,6 +126,7 @@ export async function getStallsForHalls(hallIds, fairId) {
       area:      parseFloat(stand.AREA || stand.SIZE || '9') || 9,
       standType: stand.LIST || '',
       status,
+      isFoyer:  stand.HALL === 'FOYER',
       isMerged: false, mergedWith: [], isSplit: false, splitParts: [], parentStall: null,
       exhibitor: participant ? buildExhibitor(participant) : {},
       source:    'erp',
