@@ -5,16 +5,16 @@ import { STATUS_CONFIG } from '@/lib/hall-config';
 import StallTooltip from './StallTooltip';
 
 // ── Layout constants ──────────────────────────────────────────────────────────
-const CELL_H    = 22;   // stall cell height
-const AISLE_H   = 16;   // walkway corridor height
-const FOYER_H   = 38;   // MAIN FOYER passage between halls
+const CELL_H    = 38;   // stall cell height (was 22)
+const AISLE_H   = 24;   // walkway corridor height (was 16)
+const FOYER_H   = 52;   // MAIN FOYER passage between halls (was 38)
 const ENTRY_W   = 64;   // left entrance column
 const SERVICE_W = 60;   // right service-entry column
 const PAD       = 14;
 
 const BASE_SQM  = 9;    // 1 standard module = 9 sqm (3m × 3m)
-const UNIT_PX   = 26;   // pixels per 9-sqm module
-const MIN_PX    = 20;   // minimum stand width so labels are readable
+const UNIT_PX   = 32;   // pixels per 9-sqm module (was 26)
+const MIN_PX    = 28;   // minimum stand width so labels are readable (was 20)
 const DEF_COLS  = 28;   // fallback columns per row when no data
 
 const ROW_H = CELL_H * 2 + AISLE_H;
@@ -44,6 +44,7 @@ function stallSortKey(stallNumber) {
 export default function BlockMap({ blockGroup, halls, stalls, activeHallId }) {
   const svgRef       = useRef(null);
   const containerRef = useRef(null);
+  const layoutRef    = useRef({});
   const { setHoveredStall, hoveredStall, statusFilter } = useUIStore();
 
   const [transform, setTransform] = useState({ x: PAD, y: PAD, scale: 1 });
@@ -87,19 +88,43 @@ export default function BlockMap({ blockGroup, halls, stalls, activeHallId }) {
     return max;
   }, [halls, aisleMap]);
 
-  const sortedHalls  = useMemo(() => [...halls].sort((a, b) => b.id - a.id), [halls]);
+  const sortedHalls   = useMemo(() => [...halls].sort((a, b) => b.id - a.id), [halls]);
   const aislesPerHall = halls[0]?.aisleCount ?? 4;
-  const hallH        = aislesPerHall * ROW_H;
-  const numFoyers    = sortedHalls.length - 1;
-  const blockColor   = blockGroup.color;
-  const gridX        = PAD + ENTRY_W;
-  const svgW         = PAD + ENTRY_W + gridW + SERVICE_W + PAD;
-  const svgH         = PAD + sortedHalls.length * hallH + numFoyers * FOYER_H + PAD;
+  const hallH         = aislesPerHall * ROW_H;
+  const numFoyers     = sortedHalls.length - 1;
+  const blockColor    = blockGroup.color;
+  const gridX         = PAD + ENTRY_W;
+  const svgW          = PAD + ENTRY_W + gridW + SERVICE_W + PAD;
+  const svgH          = PAD + sortedHalls.length * hallH + numFoyers * FOYER_H + PAD;
+
+  // Keep layout values accessible for computeInitialTransform
+  layoutRef.current = { svgW, svgH, hallH, sortedHalls };
 
   // ── Status helpers ────────────────────────────────────────────────────────
   const fillColor = (s)  => s ? (STATUS_CONFIG[s.status]?.bg    ?? 'rgba(226,232,240,0.55)') : 'rgba(226,232,240,0.55)';
   const strokeClr = (s)  => s ? (STATUS_CONFIG[s.status]?.border ?? 'rgba(203,213,225,0.8)')  : 'rgba(203,213,225,0.8)';
   const isDimmed  = (s)  => statusFilter !== 'all' && (!s || s.status !== statusFilter);
+
+  // ── Auto-fit transform: scale to container width, center active hall ──────
+  const computeInitialTransform = useCallback(() => {
+    const container = containerRef.current;
+    if (!container) return { x: PAD, y: PAD, scale: 1 };
+    const cw = container.clientWidth;
+    const ch = container.clientHeight;
+    const { svgW: sw, hallH: hh, sortedHalls: sh } = layoutRef.current;
+    const scale = Math.min(1.0, Math.max(0.30, (cw - PAD * 2) / (sw || 1)));
+
+    let y = PAD;
+    if (activeHallId && sh?.length) {
+      const idx = sh.findIndex((h) => h.id === activeHallId);
+      if (idx !== -1) {
+        const hallTop    = PAD + idx * (hh + FOYER_H);
+        const hallCenter = hallTop + hh / 2;
+        y = ch / 2 - hallCenter * scale;
+      }
+    }
+    return { x: PAD, y, scale };
+  }, [activeHallId]);
 
   // ── Pan / zoom ────────────────────────────────────────────────────────────
   const onPointerDown = useCallback((e) => {
@@ -125,7 +150,7 @@ export default function BlockMap({ blockGroup, halls, stalls, activeHallId }) {
     e.preventDefault();
     const factor = e.deltaY > 0 ? 0.9 : 1.1;
     setTransform((t) => {
-      const ns   = Math.min(5, Math.max(0.15, t.scale * factor));
+      const ns   = Math.min(5, Math.max(0.30, t.scale * factor));
       const rect = svgRef.current?.getBoundingClientRect();
       if (!rect) return { ...t, scale: ns };
       const mx = e.clientX - rect.left;
@@ -141,7 +166,10 @@ export default function BlockMap({ blockGroup, halls, stalls, activeHallId }) {
     return () => el.removeEventListener('wheel', onWheel);
   }, [onWheel]);
 
-  useEffect(() => { setTransform({ x: PAD, y: PAD, scale: 1 }); }, [blockGroup.block]);
+  // Auto-fit when block changes or on first mount — rAF so DOM has settled
+  useEffect(() => {
+    requestAnimationFrame(() => setTransform(computeInitialTransform()));
+  }, [blockGroup.block, computeInitialTransform]);
 
   function handleStallHover(e, stall) {
     if (!stall) return;
@@ -213,8 +241,8 @@ export default function BlockMap({ blockGroup, halls, stalls, activeHallId }) {
       <div className="absolute top-3 right-3 z-10 flex flex-col gap-1" onPointerDown={(e) => e.stopPropagation()}>
         {[
           { label: '+', fn: () => setTransform((t) => ({ ...t, scale: Math.min(5, t.scale * 1.2) })) },
-          { label: '−', fn: () => setTransform((t) => ({ ...t, scale: Math.max(0.15, t.scale * 0.85) })) },
-          { label: '⊡', fn: () => setTransform({ x: PAD, y: PAD, scale: 1 }) },
+          { label: '−', fn: () => setTransform((t) => ({ ...t, scale: Math.max(0.30, t.scale * 0.85) })) },
+          { label: '⊡', fn: () => setTransform(computeInitialTransform()) },
         ].map(({ label, fn }) => (
           <button key={label} onClick={fn}
             className="w-8 h-8 rounded-md text-sm font-bold flex items-center justify-center transition-colors hover:bg-slate-100"
@@ -229,17 +257,6 @@ export default function BlockMap({ blockGroup, halls, stalls, activeHallId }) {
         style={{ background: 'rgba(255,255,255,0.92)', border: '1px solid var(--border)', color: 'var(--text-muted)' }}>
         {Math.round(transform.scale * 100)}%
       </div>
-
-      {/* Legend */}
-      {/* <div className="absolute top-3 left-3 z-10 flex flex-col gap-1.5 p-2.5 rounded-lg"
-        style={{ background: 'rgba(255,255,255,0.95)', border: '1px solid var(--border)' }}>
-        {Object.entries(STATUS_CONFIG).map(([key, cfg]) => (
-          <div key={key} className="flex items-center gap-2 text-xs">
-            <span className="w-3 h-3 rounded-sm shrink-0" style={{ background: cfg.color }} />
-            <span style={{ color: 'var(--text-secondary)' }}>{cfg.label}</span>
-          </div>
-        ))}
-      </div> */}
 
       {/* SVG canvas */}
       <svg
@@ -261,8 +278,8 @@ export default function BlockMap({ blockGroup, halls, stalls, activeHallId }) {
         </text>
 
         {sortedHalls.map((hall, hi) => {
-          const hallY    = PAD + hi * (hallH + FOYER_H);
-          const isActive = hall.id === activeHallId;
+          const hallY      = PAD + hi * (hallH + FOYER_H);
+          const isActive   = hall.id === activeHallId;
           const aisleCount = hall.aisleCount ?? 4;
 
           return (
@@ -277,7 +294,7 @@ export default function BlockMap({ blockGroup, halls, stalls, activeHallId }) {
                       fill="rgba(226,232,240,0.45)" stroke="rgba(203,213,225,0.5)" strokeWidth={0.5} />
                     <text x={gridX + gridW / 2} y={fy + FOYER_H / 2}
                       textAnchor="middle" dominantBaseline="middle"
-                      fontSize={7} fontFamily="sans-serif" fontWeight={500}
+                      fontSize={9} fontFamily="sans-serif" fontWeight={500}
                       fill="rgba(100,116,139,0.75)" style={{ pointerEvents: 'none' }}>
                       ◄ MAIN FOYER (4 METRES WIDE PASSAGE) ►
                     </text>
@@ -320,7 +337,7 @@ export default function BlockMap({ blockGroup, halls, stalls, activeHallId }) {
               </text>
               <text x={gridX + gridW + SERVICE_W / 2} y={hallY + hallH * 0.82}
                 textAnchor="middle" dominantBaseline="middle"
-                fontSize={7} fontFamily="sans-serif" fontWeight={700}
+                fontSize={10} fontFamily="sans-serif" fontWeight={700}
                 fill={isActive ? blockColor : `${blockColor}90`}
                 style={{ pointerEvents: 'none' }}>
                 {hall.name.toUpperCase()}
@@ -348,12 +365,20 @@ export default function BlockMap({ blockGroup, halls, stalls, activeHallId }) {
 
                 return (
                   <g key={aisleName}>
-                    {/* Aisle label */}
-                    <text x={PAD + ENTRY_W - 5} y={aisleY + AISLE_H / 2}
-                      textAnchor="end" dominantBaseline="middle"
-                      fontSize={7} fontFamily="monospace"
-                      fill={`${blockColor}85`}>
+                    {/* Entry notch — aligned with this aisle corridor in the entrance column */}
+                    <rect x={PAD + 2} y={aisleY + 1} width={ENTRY_W - 4} height={AISLE_H - 2} rx={3}
+                      fill={`${blockColor}15`} stroke={`${blockColor}50`} strokeWidth={0.7} />
+                    <text x={PAD + 6} y={aisleY + AISLE_H / 2}
+                      textAnchor="start" dominantBaseline="middle"
+                      fontSize={8} fontFamily="monospace" fontWeight={600} fill={`${blockColor}90`}
+                      style={{ pointerEvents: 'none' }}>
                       {aisleName}
+                    </text>
+                    <text x={PAD + ENTRY_W - 4} y={aisleY + AISLE_H / 2}
+                      textAnchor="end" dominantBaseline="middle"
+                      fontSize={8} fontFamily="monospace" fontWeight={700} fill={`${blockColor}90`}
+                      style={{ pointerEvents: 'none' }}>
+                      ▶
                     </text>
 
                     {/* Aisle corridor */}
@@ -361,7 +386,7 @@ export default function BlockMap({ blockGroup, halls, stalls, activeHallId }) {
                       fill="rgba(241,245,249,0.9)" stroke="rgba(203,213,225,0.55)" strokeWidth={0.4} />
                     <text x={gridX + gridW / 2} y={aisleY + AISLE_H / 2}
                       textAnchor="middle" dominantBaseline="middle"
-                      fontSize={6.5} fontFamily="monospace" fill="rgba(148,163,184,0.65)"
+                      fontSize={9} fontFamily="monospace" fill="rgba(148,163,184,0.65)"
                       style={{ pointerEvents: 'none' }}>
                       ← {aisleName} →
                     </text>
@@ -401,8 +426,8 @@ function StallCell({ x, y, w, h, id, stall, dim, fill, stroke, onHover, onLeave 
     ? (STATUS_CONFIG[stall.status]?.bg?.replace(/[\d.]+\)$/, '0.28)') ?? fill)
     : 'rgba(148,163,184,0.15)';
 
-  // Truncate label to fit: ~5.5px per char at fontSize=5
-  const maxChars = Math.max(2, Math.floor(w / 5.5));
+  // Truncate label to fit: ~5px per char at fontSize=9
+  const maxChars = Math.max(2, Math.floor((w - 6) / 5));
   const idLabel  = id ? (id.split('/')[1] ?? id) : '';   // show just the position "01"
   const coLabel  = company ? company.substring(0, maxChars) : '';
 
@@ -420,18 +445,18 @@ function StallCell({ x, y, w, h, id, stall, dim, fill, stroke, onHover, onLeave 
       />
       {/* Stand number */}
       <text
-        x={x + w / 2} y={y + h / 2 - (coLabel ? 3 : 0)}
+        x={x + w / 2} y={y + h / 2 - (coLabel ? 6 : 0)}
         textAnchor="middle" dominantBaseline="middle"
-        fontSize={5} fontFamily="monospace"
+        fontSize={9} fontWeight={600} fontFamily="monospace"
         fill={statusColor} opacity={dim ? 0.25 : 0.85}
         style={{ pointerEvents: 'none' }}>
         {idLabel}
       </text>
       {/* Company name (short) */}
       {coLabel && !dim && (
-        <text x={x + w / 2} y={y + h / 2 + 4}
+        <text x={x + w / 2} y={y + h / 2 + 7}
           textAnchor="middle" dominantBaseline="middle"
-          fontSize={6} fill="rgba(0, 0, 0, 1)"
+          fontSize={8} fill="rgba(0, 0, 0, 1)"
           style={{ pointerEvents: 'none' }}>
           {coLabel}
         </text>
