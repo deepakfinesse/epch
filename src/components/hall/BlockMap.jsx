@@ -16,6 +16,8 @@ const BASE_SQM  = 9;    // 1 standard module = 9 sqm (3m × 3m)
 const UNIT_PX   = 32;   // pixels per 9-sqm module (was 26)
 const MIN_PX    = 28;   // minimum stand width so labels are readable (was 20)
 const DEF_COLS  = 28;   // fallback columns per row when no data
+const GRID_PAD     = 5;   // inner gap between hall border and stall grid (left & right)
+// const DIVIDER_EVERY = 4;  // dotted bay-divider line after every N stalls (matches PDF)
 
 const ROW_H = CELL_H * 2 + AISLE_H;
 
@@ -82,15 +84,16 @@ export default function BlockMap({ blockGroup, halls, stalls, activeHallId }) {
   }, [stalls]);
 
   // ── Compute SVG grid width (pixels, same for all halls) ──────────────────
+  // GRID_PAD is reserved on both sides so stalls don't touch the hall border
   const gridW = useMemo(() => {
-    let max = DEF_COLS * UNIT_PX;
+    let max = DEF_COLS * UNIT_PX + 2 * GRID_PAD;
     for (const hall of halls) {
       for (const aisle of hall.aisles) {
         const ad = aisleMap[aisle];
         if (!ad) continue;
         const w1 = (ad[1] || []).reduce((s, x) => s + sqmToPx(x.area || 9), 0);
         const w2 = (ad[2] || []).reduce((s, x) => s + sqmToPx(x.area || 9), 0);
-        max = Math.max(max, w1, w2);
+        max = Math.max(max, w1 + 2 * GRID_PAD, w2 + 2 * GRID_PAD);
       }
     }
     return max;
@@ -187,15 +190,18 @@ export default function BlockMap({ blockGroup, halls, stalls, activeHallId }) {
 
   // ── Render one side of an aisle ───────────────────────────────────────────
   function renderAisleSide(aisleSideStalls, y) {
-    // No data: render uniform empty cells
+    const startX     = gridX + GRID_PAD;           // stalls start after left gap
+    const rightEdge  = gridX + gridW - GRID_PAD;   // stalls end before right gap
+
+    // No data: render uniform empty cells inside the padded area
     if (!aisleSideStalls || aisleSideStalls.length === 0) {
       return Array.from({ length: DEF_COLS }, (_, ci) => (
-        <EmptyCell key={ci} x={gridX + ci * UNIT_PX} y={y} w={UNIT_PX} h={CELL_H} />
+        <EmptyCell key={ci} x={startX + ci * UNIT_PX} y={y} w={UNIT_PX} h={CELL_H} />
       ));
     }
 
     const cells = [];
-    let xPos = gridX;
+    let xPos = startX;
 
     for (const stall of aisleSideStalls) {
       const w = sqmToPx(stall.area || 9);
@@ -211,8 +217,8 @@ export default function BlockMap({ blockGroup, halls, stalls, activeHallId }) {
       xPos += w;
     }
 
-    // Available zone to fill remaining width
-    const remaining = gridW - (xPos - gridX);
+    // Available zone — fills from last stall to right inner edge
+    const remaining = rightEdge - xPos;
     if (remaining > 4) {
       cells.push(
         <rect key="avail"
@@ -431,6 +437,8 @@ export default function BlockMap({ blockGroup, halls, stalls, activeHallId }) {
 
                     {/* Bottom row — Side 2 */}
                     {renderAisleSide(ad[2], aisleY + AISLE_H)}
+
+                   
                   </g>
                 );
               })}
@@ -482,6 +490,21 @@ function StallCell({ x, y, w, h, id, stall, dim, fill, stroke, onHover, onLeave,
         strokeWidth={hovered ? 1.8 : (stall ? 0.9 : 0.4)}
         opacity={dim ? 0.18 : 1}
       />
+      {/* SIDE indicator: dotted lines on aisle-facing edge(s) */}
+      {stall && !faceLeft && (() => {
+        const sv = stall.side ?? 1;
+        const op = dim ? 0.1 : 0.55;
+        const dashLine = (x1, y1, x2, y2, key) => (
+          <line key={key} x1={x1} y1={y1} x2={x2} y2={y2}
+            stroke={statusColor} strokeWidth={1.2} strokeDasharray="3,2"
+            opacity={op} style={{ pointerEvents: 'none' }} />
+        );
+        if (sv === 2) return [
+          dashLine(x + 2, y + 0.5,   x + w - 2, y + 0.5,   'dt'),
+          dashLine(x + 2, y + h - 0.5, x + w - 2, y + h - 0.5, 'db'),
+        ];
+        return dashLine(x + 2, y + h - 0.5, x + w - 2, y + h - 0.5, 'db');
+      })()}
       {faceLeft ? (
         /* Foyer stall — rotated −90° so label reads from bottom to top (faces left passage) */
         <text
