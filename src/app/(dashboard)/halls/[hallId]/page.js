@@ -2,7 +2,7 @@
 import { use, useEffect } from 'react';
 import { useBlockDetail } from '@/hooks/useBlock';
 import { useUIStore } from '@/store/ui-store';
-import BlockMap from '@/components/hall/BlockMap';
+import DwgMap from '@/components/hall/DwgMap';
 import FilterBar from '@/components/hall/FilterBar';
 import { HALL_CONFIGS, BLOCK_GROUPS } from '@/lib/hall-config';
 import { ArrowLeft, Layers, RefreshCw } from 'lucide-react';
@@ -120,9 +120,8 @@ export default function HallDetailPage({ params }) {
         <MapSkeleton />
       ) : (
         <div style={{ height: 'calc(100vh - 280px)', minHeight: '520px' }}>
-          <BlockMap
-            blockGroup={data?.blockGroup ?? blockGroup}
-            halls={halls.length ? halls : blockGroup.halls.map((hid) => HALL_CONFIGS[hid])}
+          <DwgMap
+            blockConfig={data?.blockGroup ?? blockGroup}
             stalls={stalls}
             activeHallId={id}
           />

@@ -13,14 +13,16 @@ export default function StallTooltip() {
   const { stallNumber, hallId, aisle, area, side, status, exhibitor = {} } = hoveredStall;
   const statusCfg = STATUS_CONFIG[status] || STATUS_CONFIG.available;
 
-  // Keep tooltip within viewport
-  const containerRef = typeof window !== 'undefined'
-    ? document.querySelector('[data-hall-container]')
-    : null;
-  const maxX = (containerRef?.clientWidth || 800) - TOOLTIP_W - 12;
-  const maxY = (containerRef?.clientHeight || 600) - TOOLTIP_H - 12;
-  const tx = Math.min(tooltipPos.x + 14, maxX);
-  const ty = Math.min(tooltipPos.y - 10, maxY);
+  // Smart flip: stay close to cursor, flip side if tooltip would overflow
+  const { x, y, cw = 800, ch = 600 } = tooltipPos;
+  const OFFSET = 14;
+  let tx = x + OFFSET;
+  if (tx + TOOLTIP_W > cw - 6) tx = x - TOOLTIP_W - OFFSET;
+  tx = Math.max(4, tx);
+
+  let ty = y - TOOLTIP_H / 2;
+  if (ty + TOOLTIP_H > ch - 6) ty = ch - TOOLTIP_H - 6;
+  if (ty < 4) ty = 4;
 
   const rows = [
     { icon: LayoutGrid,  label: 'Stall',   value: `${stallNumber}  ·  Hall ${hallId}  ·  ${area || 9} sqm` },
