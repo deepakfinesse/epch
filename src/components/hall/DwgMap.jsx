@@ -27,8 +27,9 @@ const SVG_H = (MAX_Y - MIN_Y) * SCALE + PAD * 2;
 // ── Precompute layout from exact DWG coordinates ──────────────────────────────
 const { STALL_RECTS, HALL_BBOX, AISLE_LABELS } = (() => {
 
+  const regularStalls = BLOCK_E_STALLS.filter(s => s.hall !== 'FOYER');
   const byAisle = {};
-  for (const s of BLOCK_E_STALLS) (byAisle[s.aisle] ??= []).push(s);
+  for (const s of regularStalls) (byAisle[s.aisle] ??= []).push(s);
 
   // Phase 1: HIGH-X vs LOW-X cluster per stall within each aisle
   const isHighXMap = new Map();
@@ -75,12 +76,13 @@ const { STALL_RECTS, HALL_BBOX, AISLE_LABELS } = (() => {
     isDoubleFaced: s.groupBottom === true || s.groupTop === true,
     openBottom:    openBottomSet.has(s.stall),
     openTop:       openTopSet.has(s.stall),
+    isFoyer:       s.hall === 'FOYER',
   }));
 
-  // Hall bounding boxes
+  // Hall bounding boxes — exclude foyer stalls so outline stays tight around regular stalls
   const HALL_BBOX = {};
   for (const [hid, aisleNums] of Object.entries(HALL_AISLES)) {
-    const rects = STALL_RECTS.filter(r => aisleNums.includes(r.stall.aisle));
+    const rects = STALL_RECTS.filter(r => aisleNums.includes(r.stall.aisle) && !r.isFoyer);
     if (!rects.length) { HALL_BBOX[hid] = null; continue; }
     const sxArr = rects.flatMap(r => [r.sx1, r.sx2]);
     const syArr = rects.flatMap(r => [r.sy1, r.sy2]);
@@ -294,7 +296,7 @@ export default function DwgMap({ blockConfig, stalls, activeHallId }) {
 //   openTop       → also omit the top (far-end) line
 function StallRect({ rect, apiMap, statusFilter, inActive, onHover, onLeave }) {
   const [hov, setHov] = useState(false);
-  const { stall: s, sx1, sx2, sy1, sy2, isHighX, isDoubleFaced, openBottom } = rect;
+  const { stall: s, sx1, sx2, sy1, sy2, isHighX, isDoubleFaced, openBottom, isFoyer } = rect;
   const w = sx2 - sx1;
   const h = sy2 - sy1;
   if (w <= 0 || h <= 0) return null;
@@ -307,10 +309,12 @@ function StallRect({ rect, apiMap, statusFilter, inActive, onHover, onLeave }) {
   const midX    = (sx1 + sx2) / 2;
   const midY    = (sy1 + sy2) / 2;
 
-  // Solid = physical walls  |  Dashed = aisle-facing boundary (no physical wall)
-  // DWG convention: back wall + top + bottom = solid; aisle face = dashed
   let solidPath, dashedPath;
-  if (isDoubleFaced) {
+  if (isFoyer) {
+    // Standalone foyer booth — all 4 sides solid
+    solidPath  = `M${sx1},${sy1} H${sx2} V${sy2} H${sx1} Z`;
+    dashedPath = '';
+  } else if (isDoubleFaced) {
     // 3 sides dashed: both aisle faces (left+right) + the open end (entrance or walkway)
     // 1 side solid: the end that connects to the adjacent stall in the run
     if (openBottom) {
@@ -349,10 +353,8 @@ function StallRect({ rect, apiMap, statusFilter, inActive, onHover, onLeave }) {
           {s.stall}
         </text>
       )}
-      {/* Physical walls — solid */}
       <path d={solidPath}  stroke={solidStroke}  strokeWidth={0.9} fill="none" />
-      {/* Aisle-facing boundary — dashed (no physical wall) */}
-      <path d={dashedPath} stroke={dashedStroke} strokeWidth={0.7} strokeDasharray="3,2" fill="none" />
+      {dashedPath && <path d={dashedPath} stroke={dashedStroke} strokeWidth={0.7} strokeDasharray="3,2" fill="none" />}
     </g>
   );
 }

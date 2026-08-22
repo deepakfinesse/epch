@@ -71,15 +71,16 @@ export async function getStallsForHalls(hallIds, fairId) {
   const participants = participantsData.stand_participantdetail ?? [];
 
   // Build lookup: normalized stand number → participant record
-  // v_stand_no in the API is the full stand number e.g. "E-01/02"
+  // v_stand_no in the API is the full stand number e.g. "E-01/02" or "E-01/01A"
   const pMap = {};
   for (const p of participants) {
     const fa = p.Fairapplication;
     if (!fa?.v_stand_no) continue;
     const raw = String(fa.v_stand_no).trim();
-    const m   = raw.match(/^([A-Z]-\d+)\/(\d+)$/);
+    const m   = raw.match(/^([A-Z]-\d+)\/(\w+)$/);
     if (!m) continue;
-    pMap[`${m[1]}/${m[2].padStart(2, '0')}`] = p;
+    const booth = /^\d+$/.test(m[2]) ? m[2].padStart(2, '0') : m[2];
+    pMap[`${m[1]}/${booth}`] = p;
   }
 
   // Build set of available stand numbers from sendbelancestandno
@@ -93,10 +94,11 @@ export async function getStallsForHalls(hallIds, fairId) {
   for (const item of balanceStands) {
     const raw = item?.drawstands ?? item?.Drawstand ?? item;
     if (!raw) continue;
-    const aisle   = raw.AISLENO ?? raw.v_aisle_no;
-    const boothNo = raw.BOOTHNO  ?? raw.v_booth_no;
+    const aisle    = raw.AISLENO ?? raw.v_aisle_no;
+    const boothNo  = raw.BOOTHNO  ?? raw.v_booth_no;
     if (!aisle || boothNo == null) continue;
-    balanceSet.add(`${aisle}/${String(boothNo).padStart(2, '0')}`);
+    const rawB = String(boothNo);
+    balanceSet.add(`${aisle}/${/^\d+$/.test(rawB) ? rawB.padStart(2, '0') : rawB}`);
   }
 
   const results = [];
@@ -105,7 +107,8 @@ export async function getStallsForHalls(hallIds, fairId) {
     // Use our hall-config aisle map; fall back to API's HALL field only for unknown aisles
     const hallId = AISLE_TO_HALL[aisle] ?? parseInt(stand.HALL, 10);
     if (isNaN(hallId) || !hallIds.includes(hallId)) continue;
-    const boothNo     = String(stand.BOOTHNO).padStart(2, '0');
+    const rawBooth    = String(stand.BOOTHNO);
+    const boothNo     = /^\d+$/.test(rawBooth) ? rawBooth.padStart(2, '0') : rawBooth;
     const stallNumber = `${aisle}/${boothNo}`;
     const participant = pMap[stallNumber];
 
