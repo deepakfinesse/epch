@@ -2785,3 +2785,4 @@ export const BLOCK_E_ENTRANCES = [
   // ── Hall 7 entrances ────────────────────────────────────────────────────────
   // { hall: 7, label: 'ENTRANCE', x: ???, y: ???, x1: ???, y1: ??? },
 ];
+
