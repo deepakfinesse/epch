@@ -2,7 +2,7 @@
 import { useRef, useState, useCallback, useEffect, useMemo } from 'react';
 import { useUIStore } from '@/store/ui-store';
 import { STATUS_CONFIG } from '@/lib/hall-config';
-import { BLOCK_E_STALLS, HALL_AISLES } from '@/data/block-e-coords';
+import { BLOCK_E_STALLS, HALL_AISLES, BLOCK_E_ENTRANCES } from '@/data/block-e-coords';
 import StallTooltip from './StallTooltip';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -268,6 +268,45 @@ export default function DwgMap({ blockConfig, stalls, activeHallId }) {
               style={{ pointerEvents: 'none' }}>
               {label}
             </text>
+          );
+        })}
+
+        {/* Hall entrances from DWG coordinates */}
+        {BLOCK_E_ENTRANCES.map((ent, i) => {
+          const aisleNums = HALL_AISLES[ent.hall] ?? [];
+          const active    = activeAisles ? aisleNums.some(a => activeAisles.has(a)) : true;
+          const ex1 = toSX(Math.min(ent.x, ent.x1));
+          const ex2 = toSX(Math.max(ent.x, ent.x1));
+          const ey1 = toSY(Math.max(ent.y, ent.y1));
+          const ey2 = toSY(Math.min(ent.y, ent.y1));
+          const ew  = ex2 - ex1;
+          const eh  = ey2 - ey1;
+          const ecx = (ex1 + ex2) / 2;
+          const hw  = Math.min(14, ew / 2 - 1);
+          const gateCol  = active ? '#22c55e'             : 'rgba(148,163,184,0.20)';
+          const arrowCol = active ? 'rgba(30,41,59,0.75)' : 'rgba(148,163,184,0.18)';
+          const textCol  = active ? 'rgba(30,41,59,0.55)' : 'rgba(148,163,184,0.15)';
+          return (
+            <g key={i} style={{ pointerEvents: 'none' }}>
+              {/* Entrance fill area */}
+              <rect x={ex1} y={ey1} width={ew} height={eh}
+                fill={active ? 'rgba(34,197,94,0.06)' : 'transparent'} />
+              {/* Upward triangle — apex points into hall */}
+              <polygon
+                points={`${ecx},${ey1 + 2} ${ecx - hw},${ey2 - 1} ${ecx + hw},${ey2 - 1}`}
+                fill={arrowCol} />
+              {/* Gate bar at entrance bottom */}
+              <rect x={ex1 + 1} y={ey2 - 2} width={ew - 2} height={2.5}
+                fill={gateCol} rx={0.5} />
+              {/* Label */}
+              {eh > 8 && (
+                <text x={ecx} y={ey2 + 6} textAnchor="middle"
+                  fontSize={3.5} fontWeight={700} fontFamily="sans-serif"
+                  fill={textCol} letterSpacing={0.3}>
+                  {ent.label ?? 'ENTRANCE'}
+                </text>
+              )}
+            </g>
           );
         })}
 

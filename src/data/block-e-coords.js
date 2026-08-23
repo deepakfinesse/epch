@@ -2764,3 +2764,24 @@ export const HALL_AISLES = {
   5: [9, 10, 11, 12],
   7: [13, 14, 15, 16],
 };
+
+/**
+ * Hall entrances — exact DWG bounding boxes of each entrance gate opening.
+ * x,y = one corner; x1,y1 = opposite corner (same convention as stall coords).
+ * hall: which hall this entrance belongs to (1, 3, 5, or 7)
+ * label: optional display label shown on the map
+ */
+export const BLOCK_E_ENTRANCES = [
+  // ── Hall 1 entrances ────────────────────────────────────────────────────────
+   { hall: 1, label: 'Service Entry', x: 2422.6386, y: 781.4212, x1: 2433.1386, y1: 786.4212 },
+    { hall: 1, label: 'ENTRANCE', x: 2443.6386, y: 695.4212, x1: 2445.6386, y1: 692.4212 },
+    { hall: 1, label: 'ENTRANCE', x: 2411.6386, y: 695.4212, x1: 2413.6386, y1: 692.4212 },
+  // ── Hall 3 entrances ────────────────────────────────────────────────────────
+   //{ hall: 1, label: 'ENTRANCE', x: 2443.6386, y: 695.4212, x1: 2445.6386, y1: 692.4212 },
+
+  // ── Hall 5 entrances ────────────────────────────────────────────────────────
+  // { hall: 5, label: 'ENTRANCE', x: ???, y: ???, x1: ???, y1: ??? },
+
+  // ── Hall 7 entrances ────────────────────────────────────────────────────────
+  // { hall: 7, label: 'ENTRANCE', x: ???, y: ???, x1: ???, y1: ??? },
+];
