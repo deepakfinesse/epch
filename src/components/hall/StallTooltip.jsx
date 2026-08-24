@@ -3,8 +3,8 @@ import { useUIStore } from '@/store/ui-store';
 import { STATUS_CONFIG } from '@/lib/hall-config';
 import { Building2, User, Mail, Phone, MapPin, Tag, LayoutGrid, ArrowUpDown } from 'lucide-react';
 
-const TOOLTIP_W = 390;
-const TOOLTIP_H = 260;
+const TOOLTIP_W = 320;
+const TOOLTIP_H = 360;
 
 export default function StallTooltip() {
   const { hoveredStall, tooltipPos } = useUIStore();
@@ -87,10 +87,13 @@ export default function StallTooltip() {
               <span className="shrink-0 w-14" style={{ color: 'rgba(148,163,184,0.8)' }}>
                 {label}
               </span>
-              <span
+              {/* <span
                 className="flex-1 truncate"
                 style={{ color: value === '—' ? 'rgba(100,116,139,0.7)' : '#f1f5f9' }}
-                title={value}
+              > */}
+              <span
+                className="flex-1 break-words"
+                style={{ color: value === '—' ? 'rgba(100,116,139,0.7)' : '#f1f5f9' }}
               >
                 {value}
               </span>
