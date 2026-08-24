@@ -88,9 +88,9 @@ const { STALL_RECTS, HALL_BBOX, AISLE_LABELS } = (() => {
     const sxArr = rects.flatMap(r => [r.sx1, r.sx2]);
     const syArr = rects.flatMap(r => [r.sy1, r.sy2]);
     HALL_BBOX[hid] = {
-      x: Math.min(...sxArr) - 6, y: Math.min(...syArr) - 20,
+      x: Math.min(...sxArr) - 6, y: Math.min(...syArr) - 40,
       w: Math.max(...sxArr) - Math.min(...sxArr) + 12,
-      h: Math.max(...syArr) - Math.min(...syArr) + 40,
+      h: Math.max(...syArr) - Math.min(...syArr) + 80,
     };
   }
 
@@ -143,11 +143,25 @@ export default function DwgMap({ blockConfig, stalls, activeHallId }) {
 
   // Split / merge maps — driven by STALL_OVERRIDES static config (block-e-overrides.js)
   // Exhibitor data for all stalls (including sub-stalls) comes from apiMap.
+  // Each entry supports a shorthand (string[]) or object form ({ stallNumber, x, y, x1, y1 }).
+  // Merge entries support shorthand (string[]) or { absorbs: string[], x, y, x1, y1 }.
   const { splitMap, mergeMap, hiddenStalls } = useMemo(() => {
     const { merges = {}, splits = {} } = STALL_OVERRIDES;
-    const mergeMap     = { ...merges };
-    const hiddenStalls = new Set(Object.values(merges).flat());
-    return { splitMap: { ...splits }, mergeMap, hiddenStalls };
+
+    // Normalise splits: string → { stallNumber }
+    const splitMap = {};
+    for (const [base, parts] of Object.entries(splits)) {
+      splitMap[base] = parts.map(p => typeof p === 'string' ? { stallNumber: p } : p);
+    }
+
+    // Normalise merges: string[] → { absorbs: string[] }
+    const mergeMap = {};
+    for (const [primary, val] of Object.entries(merges)) {
+      mergeMap[primary] = Array.isArray(val) ? { absorbs: val } : val;
+    }
+
+    const hiddenStalls = new Set(Object.values(mergeMap).flatMap(v => v.absorbs));
+    return { splitMap, mergeMap, hiddenStalls };
   }, []);
 
   const onPD = useCallback(e => {
@@ -216,12 +230,12 @@ export default function DwgMap({ blockConfig, stalls, activeHallId }) {
       onPointerDown={onPD} onPointerMove={onPM} onPointerUp={onPU} onPointerLeave={onPU}
       onMouseLeave={onLeave}>
 
-      <div className="absolute top-3 left-3 z-10 flex items-center gap-2 rounded-lg px-3 py-1.5"
+      {/* <div className="absolute top-3 left-3 z-10 flex items-center gap-2 rounded-lg px-3 py-1.5"
         style={{ background: 'rgba(255,255,255,0.97)', border: '1px solid var(--border)' }}>
         <span className="w-2 h-2 rounded-full" style={{ background: color }} />
         <span className="text-xs font-semibold" style={{ color }}>Block E · DWG Map</span>
         <span className="text-xs" style={{ color: 'var(--text-muted)' }}>{BLOCK_E_STALLS.length} stalls</span>
-      </div>
+      </div> */}
 
       <div className="absolute top-3 right-3 z-10 flex flex-col gap-1" onPointerDown={e => e.stopPropagation()}>
         {[
@@ -331,38 +345,47 @@ export default function DwgMap({ blockConfig, stalls, activeHallId }) {
           // This stall was absorbed into a merge → skip it
           if (hiddenStalls.has(sn)) return null;
 
-          // Primary merger: extend rect to cover all merged-with stalls
+          // Primary merger: use explicit coords if provided, else auto-expand to cover absorbed stalls
           if (mergeMap[sn]) {
-            const extras = mergeMap[sn].map(msn => RECT_BY_STALL[msn]).filter(Boolean);
-            if (extras.length) {
+            const { absorbs, x, y, x1, y1 } = mergeMap[sn];
+            let msx1, msx2, msy1, msy2;
+            if (x != null && y != null && x1 != null && y1 != null) {
+              msx1 = toSX(Math.min(x, x1)); msx2 = toSX(Math.max(x, x1));
+              msy1 = toSY(Math.max(y, y1)); msy2 = toSY(Math.min(y, y1));
+            } else {
+              const extras = absorbs.map(msn => RECT_BY_STALL[msn]).filter(Boolean);
               const allSx1 = [rect.sx1, ...extras.map(r => r.sx1)];
               const allSx2 = [rect.sx2, ...extras.map(r => r.sx2)];
               const allSy1 = [rect.sy1, ...extras.map(r => r.sy1)];
               const allSy2 = [rect.sy2, ...extras.map(r => r.sy2)];
-              return (
-                <StallRect key={sn} rect={{
-                  ...rect,
-                  sx1: Math.min(...allSx1), sx2: Math.max(...allSx2),
-                  sy1: Math.min(...allSy1), sy2: Math.max(...allSy2),
-                }} apiMap={apiMap} statusFilter={statusFilter}
-                  inActive={inActive} onHover={onHover} onLeave={onLeave} />
-              );
+              msx1 = Math.min(...allSx1); msx2 = Math.max(...allSx2);
+              msy1 = Math.min(...allSy1); msy2 = Math.max(...allSy2);
             }
+            return (
+              <StallRect key={sn} rect={{ ...rect, sx1: msx1, sx2: msx2, sy1: msy1, sy2: msy2 }}
+                apiMap={apiMap} statusFilter={statusFilter}
+                inActive={inActive} onHover={onHover} onLeave={onLeave} />
+            );
           }
 
-          // Split: divide rect into N equal slices along Y, one per API sub-stall
+          // Split: use explicit coords per sub-stall if provided, else auto-slice rect equally along Y
           if (splitMap[sn]) {
             const parts  = splitMap[sn];
             const sliceH = (rect.sy2 - rect.sy1) / parts.length;
-            return parts.map((partSn, idx) => (
-              <StallRect key={partSn} rect={{
-                ...rect,
-                stall:  { ...rect.stall, stall: partSn },
-                sy1:    rect.sy1 + idx * sliceH,
-                sy2:    rect.sy1 + (idx + 1) * sliceH,
-              }} apiMap={apiMap} statusFilter={statusFilter}
-                inActive={inActive} onHover={onHover} onLeave={onLeave} />
-            ));
+            return parts.map((part, idx) => {
+              const { stallNumber, x, y, x1, y1 } = part;
+              const subRect = (x != null && y != null && x1 != null && y1 != null)
+                ? { ...rect, stall: { ...rect.stall, stall: stallNumber },
+                    sx1: toSX(Math.min(x, x1)), sx2: toSX(Math.max(x, x1)),
+                    sy1: toSY(Math.max(y, y1)), sy2: toSY(Math.min(y, y1)) }
+                : { ...rect, stall: { ...rect.stall, stall: stallNumber },
+                    sy1: rect.sy1 + idx * sliceH, sy2: rect.sy1 + (idx + 1) * sliceH };
+              return (
+                <StallRect key={stallNumber} rect={subRect} apiMap={apiMap}
+                  statusFilter={statusFilter} inActive={inActive}
+                  onHover={onHover} onLeave={onLeave} />
+              );
+            });
           }
 
           // Normal render

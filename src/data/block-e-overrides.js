@@ -23,11 +23,25 @@ export const STALL_OVERRIDES = {
   /** primary stall → array of stalls it absorbs */
   merges: {
    // 'E-01/08': ['E-01/09'],
+
+   // 'E-01/08': { absorbs: ['E-01/09'], x: 2446.5876, y:  732.956, x1: 2450.5886, y1: 741.9565 },
+
   },
 
   /** base stall → ordered array of sub-stall numbers */
   splits: {
     // 'E-01/24': ['E-01/24A', 'E-01/24B'],
     // 'E-03/05': ['E-03/05A', 'E-03/05B'],
+     
+    // with exact coords (DWG units, same convention as block-e-coords.js):
+    // 'E-01/24': [
+    //   { stallNumber: 'E-01/24A', x: 2446.5876, y: 765.956, x1: 2450.5876, y1: 768.956 },
+    //   { stallNumber: 'E-01/24B', x: 2446.5876, y: 768.956, x1: 2450.5876, y1: 773.4695 },
+    // ],
+
+    // 'E-01/05': [
+    //   { stallNumber: 'E-01/05A', x: 2434.5242, y: 719.454, x1: 2438.5242, y1: 723.457 },
+    //   { stallNumber: 'E-01/05B', x: 2438.5242, y: 719.454, x1: 2442.5347, y1: 723.457 },
+    // ],
   },
 };
