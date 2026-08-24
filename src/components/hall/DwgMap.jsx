@@ -94,21 +94,25 @@ const { STALL_RECTS, HALL_BBOX, AISLE_LABELS } = (() => {
     };
   }
 
-  // Aisle corridor labels
-  const AISLE_LABELS = Object.entries(byAisle).map(([aisleNumStr, astalls]) => {
+  // Aisle corridor labels — foyer stalls excluded: they live outside the hall and skew corridorX
+  const AISLE_LABELS = Object.entries(byAisle).map(([aisleNumStr]) => {
     const aisleNum  = Number(aisleNumStr);
-    const highRects = STALL_RECTS.filter(r => r.stall.aisle === aisleNum &&  r.isHighX);
-    const lowRects  = STALL_RECTS.filter(r => r.stall.aisle === aisleNum && !r.isHighX);
+    const highRects = STALL_RECTS.filter(r => r.stall.aisle === aisleNum &&  r.isHighX && !r.isFoyer);
+    const lowRects  = STALL_RECTS.filter(r => r.stall.aisle === aisleNum && !r.isHighX && !r.isFoyer);
+    const all = [...highRects, ...lowRects];
+    if (!all.length) return null;
     const highFace  = highRects.length ? Math.min(...highRects.map(r => r.sx1)) : null;
     const lowFace   = lowRects.length  ? Math.max(...lowRects.map(r => r.sx2))  : null;
+    const corridorW = (highFace != null && lowFace != null) ? highFace - lowFace : 20;
     const corridorX = highFace != null && lowFace != null ? (highFace + lowFace) / 2 : highFace ?? lowFace ?? 0;
-    const all = [...highRects, ...lowRects];
+    // Font height (after -90° rotation) must fit inside the corridor; floor at 7, cap at 11
+    const fontSize  = Math.max(7, Math.min(11, corridorW - 6));
     return {
-      aisleNum, corridorX, label: `E-${String(aisleNum).padStart(2, '0')}`,
+      aisleNum, corridorX, corridorW, fontSize, label: `E-${String(aisleNum).padStart(2, '0')}`,
       syMin: Math.min(...all.map(r => r.sy1)),
       syMax: Math.max(...all.map(r => r.sy2)),
     };
-  });
+  }).filter(Boolean);
 
   return { STALL_RECTS, HALL_BBOX, AISLE_LABELS };
 })();
@@ -281,20 +285,27 @@ export default function DwgMap({ blockConfig, stalls, activeHallId }) {
           );
         })}
 
-        {/* Aisle corridor labels — rotated 90° like DWG */}
-        {AISLE_LABELS.map(({ aisleNum, corridorX, syMin, syMax, label }) => {
+        {/* Aisle corridor labels — rotated 90°, font sized to fit the corridor */}
+        {AISLE_LABELS.map(({ aisleNum, corridorX, corridorW, fontSize, syMin, syMax, label }) => {
           const active = activeAisles ? activeAisles.has(aisleNum) : true;
           const midY   = (syMin + syMax) / 2;
+          const stripH = syMax - syMin;
           return (
-            <text key={aisleNum}
-              x={corridorX} y={midY}
-              textAnchor="middle" dominantBaseline="middle"
-              transform={`rotate(-90, ${corridorX}, ${midY})`}
-              fontSize={12} fontWeight={700} fontFamily="monospace" letterSpacing={0.4}
-              fill={active ? 'rgba(51,65,85,0.4)' : 'rgba(148,163,184,0.18)'}
-              style={{ pointerEvents: 'none' }}>
-              {label}
-            </text>
+            <g key={aisleNum} style={{ pointerEvents: 'none' }}>
+              {/* faint background strip so label is distinct from stall fills */}
+              <rect
+                x={corridorX - corridorW / 2} y={syMin}
+                width={corridorW} height={stripH}
+                fill="rgba(255,255,255,0.45)" />
+              <text
+                x={corridorX} y={midY}
+                textAnchor="middle" dominantBaseline="middle"
+                transform={`rotate(-90, ${corridorX}, ${midY})`}
+                fontSize={fontSize} fontWeight={700} fontFamily="monospace" letterSpacing={0.4}
+                fill={active ? 'rgba(51,65,85,0.55)' : 'rgba(148,163,184,0.18)'}>
+                {label}
+              </text>
+            </g>
           );
         })}
 

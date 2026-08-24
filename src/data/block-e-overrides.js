@@ -22,9 +22,9 @@
 export const STALL_OVERRIDES = {
   /** primary stall → array of stalls it absorbs */
   merges: {
-   // 'E-01/08': ['E-01/09'],
+   // 'E-03/08': ['E-03/09'],
 
-   // 'E-01/08': { absorbs: ['E-01/09'], x: 2446.5876, y:  732.956, x1: 2450.5886, y1: 741.9565 },
+   // 'E-02/08': { absorbs: ['E-02/10'], x: 2434.5242, y:  733.954, x1: 2438.568, y1: 740.453 },
 
   },
 
