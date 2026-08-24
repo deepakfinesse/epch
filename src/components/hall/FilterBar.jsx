@@ -15,7 +15,7 @@ export default function FilterBar({ categories = [], stats = {} }) {
 
   return (
     <div
-      className="flex flex-wrap items-center gap-3 p-3 rounded-xl mb-4"
+      className="flex flex-wrap items-center gap-3 p-2 rounded-xl mb-2"
       style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}
     >
       {/* Search */}
@@ -43,7 +43,7 @@ export default function FilterBar({ categories = [], stats = {} }) {
       <div className="flex items-center gap-1.5 flex-wrap">
         <button
           onClick={() => setStatusFilter('all')}
-          className="text-xs px-3 py-1.5 rounded-full transition-colors font-medium"
+          className="text-xs px-2 py-1 rounded-full transition-colors font-medium"
           style={{
             background: statusFilter === 'all' ? 'rgba(56,189,248,0.15)' : 'var(--bg-secondary)',
             border: `1px solid ${statusFilter === 'all' ? 'rgba(56,189,248,0.4)' : 'var(--border)'}`,
@@ -56,7 +56,7 @@ export default function FilterBar({ categories = [], stats = {} }) {
           <button
             key={key}
             onClick={() => setStatusFilter(key)}
-            className="text-xs px-3 py-1.5 rounded-full transition-colors font-medium"
+            className="text-xs px-2 py-1 rounded-full transition-colors font-medium"
             style={{
               background: statusFilter === key ? cfg.bg : 'var(--bg-secondary)',
               border: `1px solid ${statusFilter === key ? cfg.border : 'var(--border)'}`,

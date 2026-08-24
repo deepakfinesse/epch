@@ -272,8 +272,8 @@ export default function DwgMap({ blockConfig, stalls, activeHallId }) {
                 stroke={active ? color : 'rgba(148,163,184,0.22)'}
                 strokeWidth={active ? 1.2 : 0.6}
                 strokeDasharray={active ? '' : '5,3'} />
-              <text x={b.x + b.w / 2} y={b.y - 8}
-                textAnchor="middle" fontSize={8} fontWeight={700} fontFamily="sans-serif"
+              <text x={b.x + b.w / 1.3} y={b.y - 8}
+                textAnchor="middle" fontSize={14} fontWeight={700} fontFamily="sans-serif"
                 fill={active ? color : 'rgba(148,163,184,0.5)'}>
                 HALL {hid}
               </text>
@@ -290,7 +290,7 @@ export default function DwgMap({ blockConfig, stalls, activeHallId }) {
               x={corridorX} y={midY}
               textAnchor="middle" dominantBaseline="middle"
               transform={`rotate(-90, ${corridorX}, ${midY})`}
-              fontSize={4.5} fontWeight={700} fontFamily="monospace" letterSpacing={0.4}
+              fontSize={12} fontWeight={700} fontFamily="monospace" letterSpacing={0.4}
               fill={active ? 'rgba(51,65,85,0.4)' : 'rgba(148,163,184,0.18)'}
               style={{ pointerEvents: 'none' }}>
               {label}
@@ -327,8 +327,8 @@ export default function DwgMap({ blockConfig, stalls, activeHallId }) {
                 fill={gateCol} rx={0.5} />
               {/* Label */}
               {eh > 8 && (
-                <text x={ecx} y={ey2 + 6} textAnchor="middle"
-                  fontSize={3.5} fontWeight={700} fontFamily="sans-serif"
+                <text x={ecx} y={ey2 + 8} textAnchor="middle"
+                  fontSize={6} fontWeight={700} fontFamily="sans-serif"
                   fill={textCol} letterSpacing={0.3}>
                   {ent.label ?? 'ENTRANCE'}
                 </text>
@@ -452,7 +452,7 @@ function StallRect({ rect, apiMap, statusFilter, inActive, onHover, onLeave }) {
   }
 
   const solidStroke  = inActive ? 'rgba(30,41,59,0.80)'  : 'rgba(148,163,184,0.30)';
-  const dashedStroke = inActive ? 'rgba(30,41,59,0.45)'  : 'rgba(148,163,184,0.18)';
+  const dashedStroke = inActive ? 'rgba(30,41,59,0.80)'  : 'rgba(148,163,184,0.30)';
 
   return (
     <g className="ds" style={{ cursor: 'pointer' }}
@@ -469,7 +469,8 @@ function StallRect({ rect, apiMap, statusFilter, inActive, onHover, onLeave }) {
         </text>
       )}
       <path d={solidPath}  stroke={solidStroke}  strokeWidth={0.9} fill="none" />
-      {dashedPath && <path d={dashedPath} stroke={dashedStroke} strokeWidth={0.7} strokeDasharray="3,2" fill="none" />}
+      {/* {dashedPath && <path d={dashedPath} stroke={dashedStroke} strokeWidth={0.7} strokeDasharray="3,2" fill="none" />} */}
+      {dashedPath && <path d={dashedPath} stroke={dashedStroke} strokeWidth={0.7}  fill="none" />}
     </g>
   );
 }

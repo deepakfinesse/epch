@@ -2773,7 +2773,7 @@ export const HALL_AISLES = {
  */
 export const BLOCK_E_ENTRANCES = [
   // ── Hall 1 entrances ────────────────────────────────────────────────────────
-   { hall: 1, label: 'Service Entry', x: 2422.6386, y: 781.4212, x1: 2433.1386, y1: 786.4212 },
+   { hall: 1, label: 'SERVICE ENTRY', x: 2422.6386, y: 782.4212, x1: 2433.1386, y1: 786.4212 },
     { hall: 1, label: 'ENTRANCE', x: 2443.6386, y: 695.4212, x1: 2445.6386, y1: 692.4212 },
     { hall: 1, label: 'ENTRANCE', x: 2411.6386, y: 695.4212, x1: 2413.6386, y1: 692.4212 },
   // ── Hall 3 entrances ────────────────────────────────────────────────────────

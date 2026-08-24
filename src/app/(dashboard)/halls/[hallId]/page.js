@@ -47,10 +47,10 @@ export default function HallDetailPage({ params }) {
   )];
 
   return (
-    <div className="p-6 max-w-full space-y-4">
+    <div className="p-2 max-w-full space-y-2">
 
       {/* Breadcrumb + header */}
-      <div className="flex items-center justify-between flex-wrap gap-3">
+      <div className="flex items-center justify-between flex-wrap gap-2">
         <div className="flex items-center gap-3">
           <Link href="/halls" className="p-1.5 rounded-lg transition-colors hover:bg-black/5"
             style={{ color: 'var(--text-secondary)' }}>
@@ -58,7 +58,7 @@ export default function HallDetailPage({ params }) {
           </Link>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
+              <h2 className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>
                 {hallConfig.name}
               </h2>
               <span className="text-xs px-2 py-0.5 rounded-full font-medium mono"
@@ -70,19 +70,21 @@ export default function HallDetailPage({ params }) {
                 Block {hallConfig.block}
               </span>
               {/* Show that we're displaying the full block */}
-              <span className="text-xs px-2 py-0.5 rounded-full"
+              {/* <span className="text-xs px-2 py-0.5 rounded-full"
                 style={{ background: 'rgba(148,163,184,0.12)', color: 'var(--text-muted)', border: '1px solid var(--border)' }}>
                 {blockGroup.label} · all halls
-              </span>
+              </span> */}
+               <span className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
+              {/* {hallConfig.floorLabel} · {hallConfig.aisleCount} Aisles ·  */}
+              {hallConfig.aisles[0]} to {hallConfig.aisles[hallConfig.aisles.length - 1]}
+            </span>
             </div>
-            <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
-              {hallConfig.floorLabel} · {hallConfig.aisleCount} Aisles · {hallConfig.aisles[0]} to {hallConfig.aisles[hallConfig.aisles.length - 1]}
-            </p>
+           
           </div>
         </div>
 
         {/* Stats pills for active hall */}
-        <div className="flex items-center gap-2 flex-wrap">
+        {/* <div className="flex items-center gap-2 flex-wrap">
           {[
             { label: 'Total',     val: stats.total     ?? hallConfig.totalStalls, color: '#38bdf8' },
             { label: 'Allotted',  val: stats.allotted  ?? 0, color: '#ff6b35' },
@@ -101,7 +103,7 @@ export default function HallDetailPage({ params }) {
             style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text-secondary)' }}>
             <RefreshCw size={14} className={isFetching ? 'animate-spin' : ''} />
           </button>
-        </div>
+        </div> */}
       </div>
 
       {/* Filter bar */}

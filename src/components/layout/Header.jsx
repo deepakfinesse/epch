@@ -18,7 +18,7 @@ export default function Header({ title }) {
 
   return (
     <header
-      className="sticky top-0 z-20 h-16 flex items-center justify-between px-4 gap-4"
+      className="sticky top-0 z-20 h-12 flex items-center justify-between px-4 gap-4"
       style={{
         background: 'var(--bg-secondary)',
         borderBottom: '1px solid var(--border)',

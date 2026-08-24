@@ -394,7 +394,7 @@ export default function BlockMap({ blockGroup, halls, stalls, activeHallId }) {
                             textAnchor="middle" dominantBaseline="middle"
                             fontSize={5.5} fontFamily="sans-serif" fontWeight={700} letterSpacing={0.8}
                             fill={`${blockColor}90`}
-                            transform={`rotate(-90,${ax + (tipX - ax) * 0.38},${arrowY + arrowH / 2})`}>
+                            transform={`rotate(-190,${ax + (tipX - ax) * 0.38},${arrowY + arrowH / 2})`}>
                             ENTRANCE
                           </text>
                         </g>

@@ -14,7 +14,7 @@ export async function GET() {
     // Transform { "965": "61ST IHGF...", "970": "62ND IHGF..." } → sorted array (newest first)
     const fairs = Object.entries(data.fairdata || {})
       .map(([id, name]) => ({ id, name }))
-      .sort((a, b) => Number(b.id) - Number(a.id));
+      // .sort((a, b) => Number(b.id) - Number(a.id));
 
       console.log("testing", fairs);
     return NextResponse.json({ fairs });
