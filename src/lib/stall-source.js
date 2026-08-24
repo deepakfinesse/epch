@@ -26,13 +26,18 @@ async function epchFetch(url, body) {
   return res.json();
 }
 
-function buildExhibitor(p) {
+function buildExhibitor(participants) {
+  const p   = participants[0];
   const con = p.con    || {};
   const cty = p.cty    || {};
   const sts = p.states || {};
   const cat = p.cat    || {};
+
+  // When two participant records share the same v_stand_no, show both org names.
+  const companyNames = [...new Set(participants.map((x) => x.con?.v_org_name).filter(Boolean))];
+
   return {
-    companyName:     con.v_org_name       || '',
+    companyName:     companyNames.join(' / '),
     contactPerson:   p.con2?.v_name       || con.v_contact_person || '',
     email:           con.v_email          || '',
     phone:           con.v_mobile_no      || con.v_phone_no || '',
@@ -70,8 +75,9 @@ export async function getStallsForHalls(hallIds, fairId) {
   const stands       = (standsData.stand_details ?? []).map((d) => d.Drawstand).filter(Boolean);
   const participants = participantsData.stand_participantdetail ?? [];
 
-  // Build lookup: normalized stand number → participant record
+  // Build lookup: normalized stand number → participant records
   // v_stand_no in the API is the full stand number e.g. "E-01/02" or "E-01/01A"
+  // A stand number can appear on 2+ participant records (co-exhibitors sharing a stand).
   const pMap = {};
   for (const p of participants) {
     const fa = p.Fairapplication;
@@ -80,7 +86,8 @@ export async function getStallsForHalls(hallIds, fairId) {
     const m   = raw.match(/^([A-Z]-\d+)\/(\w+)$/);
     if (!m) continue;
     const booth = /^\d+$/.test(m[2]) ? m[2].padStart(2, '0') : m[2];
-    pMap[`${m[1]}/${booth}`] = p;
+    const key = `${m[1]}/${booth}`;
+    (pMap[key] ??= []).push(p);
   }
 
   // Build set of available stand numbers from sendbelancestandno
@@ -110,7 +117,7 @@ export async function getStallsForHalls(hallIds, fairId) {
     const rawBooth    = String(stand.BOOTHNO);
     const boothNo     = /^\d+$/.test(rawBooth) ? rawBooth.padStart(2, '0') : rawBooth;
     const stallNumber = `${aisle}/${boothNo}`;
-    const participant = pMap[stallNumber];
+    const participants = pMap[stallNumber];
 
     // In balance list → available; everything else → allotted
     // (reserved is not a real EPCH API status — it falls under allotted)
@@ -118,7 +125,7 @@ export async function getStallsForHalls(hallIds, fairId) {
     if (balanceSet.size > 0) {
       status = balanceSet.has(stallNumber) ? 'available' : 'allotted';
     } else {
-      status = participant ? 'allotted' : 'available'; // fallback if balance API returned nothing
+      status = participants ? 'allotted' : 'available'; // fallback if balance API returned nothing
     }
 
     results.push({
@@ -131,7 +138,7 @@ export async function getStallsForHalls(hallIds, fairId) {
       status,
       isFoyer:  stand.HALL === 'FOYER',
       isMerged: false, mergedWith: [], isSplit: false, splitParts: [], parentStall: null,
-      exhibitor: participant ? buildExhibitor(participant) : {},
+      exhibitor: participants ? buildExhibitor(participants) : {},
       source:    'erp',
     });
   }

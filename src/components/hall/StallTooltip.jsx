@@ -3,7 +3,7 @@ import { useUIStore } from '@/store/ui-store';
 import { STATUS_CONFIG } from '@/lib/hall-config';
 import { Building2, User, Mail, Phone, MapPin, Tag, LayoutGrid, ArrowUpDown } from 'lucide-react';
 
-const TOOLTIP_W = 260;
+const TOOLTIP_W = 390;
 const TOOLTIP_H = 260;
 
 export default function StallTooltip() {
