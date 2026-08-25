@@ -28,25 +28,35 @@ async function epchFetch(url, body) {
 
 function buildExhibitor(participants) {
   const p   = participants[0];
-  const con = p.con    || {};
   const cty = p.cty    || {};
   const sts = p.states || {};
   const cat = p.cat    || {};
 
-  // When two participant records share the same v_stand_no, show both org names.
-  const companyNames = [...new Set(participants.map((x) => x.con?.v_org_name).filter(Boolean))];
+  // Each co-exhibitor has their own participant record with separate contact details.
+  const companies = participants.map(px => {
+    const cx = px.con || {};
+    return {
+      companyName:   cx.v_org_name                              || '',
+      contactPerson: px.con2?.v_name || cx.v_contact_person     || '',
+      email:         cx.v_email                                  || '',
+      phone:         cx.v_mobile_no  || cx.v_phone_no            || '',
+    };
+  }).filter(c => c.companyName || c.contactPerson || c.email || c.phone);
 
+  const con = p.con || {};
   return {
-    companyName:     companyNames.join(' / '),
-    contactPerson:   p.con2?.v_name       || con.v_contact_person || '',
-    email:           con.v_email          || '',
-    phone:           con.v_mobile_no      || con.v_phone_no || '',
+    // Flat fields kept for backward-compat (single-company stalls, API stubs, etc.)
+    companyName:     companies.map(c => c.companyName).filter(Boolean).join(' / '),
+    contactPerson:   companies[0]?.contactPerson || '',
+    email:           companies[0]?.email         || '',
+    phone:           companies[0]?.phone         || '',
     city:            cty.v_city_name      || '',
     state:           sts.v_state_name     || '',
     address:         [con.v_address1, con.v_address2].filter(Boolean).join(', '),
     productCategory: cat.v_cat_name       || '',
     gstNo:           p.mem?.vc_gst_no     || '',
     website:         p.con3?.v_web_url    || '',
+    companies,   // per-company breakdown for the tooltip
   };
 }
 

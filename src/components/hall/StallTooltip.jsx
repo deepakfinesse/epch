@@ -3,7 +3,7 @@ import { useUIStore } from '@/store/ui-store';
 import { STATUS_CONFIG } from '@/lib/hall-config';
 import { Building2, User, Mail, Phone, MapPin, Tag, LayoutGrid, ArrowUpDown } from 'lucide-react';
 
-const TOOLTIP_W = 320;
+const TOOLTIP_W = 660;
 const TOOLTIP_H = 420;
 
 export default function StallTooltip() {
@@ -24,10 +24,12 @@ export default function StallTooltip() {
 
   const location = [exhibitor.city, exhibitor.state].filter(Boolean).join(', ');
 
-  // Split combined company names (e.g. "A / B") into separate blocks
-  const companies = exhibitor.companyName
-    ? exhibitor.companyName.split('/').map(s => s.trim()).filter(Boolean)
-    : [];
+  // Use per-company records from API when available; fall back to splitting the flat string
+  const companies = exhibitor.companies?.length
+    ? exhibitor.companies
+    : exhibitor.companyName
+      ? exhibitor.companyName.split('/').map(s => ({ companyName: s.trim(), contactPerson: exhibitor.contactPerson, email: exhibitor.email, phone: exhibitor.phone })).filter(c => c.companyName)
+      : [];
 
   const muted  = 'rgba(148,163,184,0.8)';
   const border = 'rgba(51,65,85,0.7)';
@@ -43,13 +45,13 @@ export default function StallTooltip() {
     );
   }
 
-  function CompanyBlock({ name }) {
+  function CompanyBlock({ company }) {
     return (
       <div className="space-y-1.5">
-        <Row icon={Building2} label="Company"  value={name} />
-        <Row icon={User}      label="Contact"  value={exhibitor.contactPerson} />
-        <Row icon={Mail}      label="Email"    value={exhibitor.email} />
-        <Row icon={Phone}     label="Phone"    value={exhibitor.phone} />
+        <Row icon={Building2} label="Company"  value={company.companyName} />
+        <Row icon={User}      label="Contact"  value={company.contactPerson} />
+        <Row icon={Mail}      label="Email"    value={company.email} />
+        <Row icon={Phone}     label="Phone"    value={company.phone} />
         <Row icon={MapPin}    label="Location" value={location} />
         <Row icon={Tag}       label="Category" value={exhibitor.productCategory} />
       </div>
@@ -92,24 +94,28 @@ export default function StallTooltip() {
         {hasExhibitor && (
           <div style={{ borderTop: `1px solid ${border}` }}>
             {companies.length > 1 ? (
-              // Multiple companies — each gets its own labeled block
-              companies.map((name, i) => (
-                <div key={i} style={{ borderTop: i > 0 ? `1px dashed ${border}` : undefined }}>
+              // Multiple companies — side-by-side columns
+              <div className="flex" style={{ borderTop: `1px solid ${border}` }}>
+                {companies.map((company, i) => (
                   <div
-                    className="px-3 pt-1.5 pb-0.5 text-xs font-semibold"
-                    style={{ color: 'rgba(148,163,184,0.55)', letterSpacing: '0.04em' }}
+                    key={i}
+                    className="flex-1 px-3 py-2 space-y-1.5"
+                    style={{ borderLeft: i > 0 ? `1px solid ${border}` : undefined }}
                   >
-                    COMPANY {i + 1}
+                    <div
+                      className="text-xs font-semibold mb-1.5"
+                      style={{ color: 'rgba(148,163,184,0.55)', letterSpacing: '0.04em' }}
+                    >
+                      COMPANY {i + 1}
+                    </div>
+                    <CompanyBlock company={company} />
                   </div>
-                  <div className="px-3 pb-2 space-y-1.5">
-                    <CompanyBlock name={name} />
-                  </div>
-                </div>
-              ))
+                ))}
+              </div>
             ) : (
               // Single company
               <div className="px-3 py-2 space-y-1.5">
-                <CompanyBlock name={companies[0] || ''} />
+                <CompanyBlock company={companies[0] || {}} />
               </div>
             )}
           </div>
